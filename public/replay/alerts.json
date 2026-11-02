@@ -1,0 +1,122 @@
+{
+  "f1-001": {
+    "event_id": "f1-001",
+    "importance": 9,
+    "alert": "Safety Car deployed! Latifi crashes with 5 laps to go",
+    "why": "Erases Hamilton's 12s lead and flips pit strategy for the championship finale.",
+    "novice_note": "A Safety Car slows everyone down and packs the grid together, eliminating any lead.",
+    "tags": ["safety-car", "incident", "title-decider"]
+  },
+  "f1-002": {
+    "event_id": "f1-002",
+    "importance": 8,
+    "alert": "Verstappen pits for Soft tyres! Hamilton stays out",
+    "why": "Red Bull gambles on fresh rubber; Hamilton left vulnerable on worn hard tyres.",
+    "novice_note": "Soft tyres give immense grip and speed over short sprints compared to worn hard tyres.",
+    "tags": ["pit-stop", "strategy", "tyre-gamble"]
+  },
+  "cric-001": {
+    "event_id": "cric-001",
+    "importance": 4,
+    "alert": "Klaasen reaches 50 off 23 balls, SA cruising",
+    "why": "Fast fifty keeps SA in control needing 26 off 24, but no sudden match swing.",
+    "novice_note": "A half-century is 50 runs scored by one batter, a significant personal milestone.",
+    "tags": ["milestone", "boundary", "decoy"]
+  },
+  "cric-002": {
+    "event_id": "cric-002",
+    "importance": 8,
+    "alert": "Klaasen falls for 52! SA 151/5, 26 needed off 23",
+    "why": "Dangerous set batter dismissed just as SA looked certain to cruise home.",
+    "novice_note": "Losing a set batter right at the death shifts immense pressure onto incoming batters.",
+    "tags": ["wicket", "turning-point", "death-overs"]
+  },
+  "ten-005": {
+    "event_id": "ten-005",
+    "importance": 8,
+    "alert": "Break point for Sinner at 3-2 in 5th set decider",
+    "why": "Crucial opening to take control of the championship set on Medvedev's serve.",
+    "novice_note": "A break point allows the receiver to win the opponent's service game and gain a huge lead.",
+    "tags": ["break-point", "fifth-set"]
+  },
+  "ten-006": {
+    "event_id": "ten-006",
+    "importance": 9,
+    "alert": "Sinner breaks Medvedev! Leads 4-2 in 5th set",
+    "why": "Decisive break in the final set gives Sinner a clear path to his first Grand Slam.",
+    "novice_note": "Breaking serve in a decider is often the winning moment in a Grand Slam final.",
+    "tags": ["break-of-serve", "championship-swing"]
+  },
+  "cric-004": {
+    "event_id": "cric-004",
+    "importance": 8,
+    "alert": "Bumrah castles Jansen! SA 157/6, 20 needed off 14",
+    "why": "Bumrah's lethal off-cutter exposes the tail and pushes required rate over 9.",
+    "novice_note": "Hitting the stumps directly (bowled) gives the batter zero chance of survival.",
+    "tags": ["wicket", "death-bowling"]
+  },
+  "f1-004": {
+    "event_id": "f1-004",
+    "importance": 8,
+    "alert": "Lapped cars cleared between Hamilton and Verstappen",
+    "why": "Race Control decision clears obstacles for a direct final-lap title battle.",
+    "novice_note": "Lapped cars are slower cars a lap down; moving them creates an unobstructed duel.",
+    "tags": ["incident", "race-control"]
+  },
+  "f1-005": {
+    "event_id": "f1-005",
+    "importance": 9,
+    "alert": "Safety Car in! One-lap sprint for the World Title",
+    "why": "Hamilton on dead hards vs Verstappen on fresh softs for one lap to decide the year.",
+    "novice_note": "The Safety Car leaves the track, and racing resumes immediately at full speed.",
+    "tags": ["restart", "final-lap"]
+  },
+  "cric-005": {
+    "event_id": "cric-005",
+    "importance": 10,
+    "alert": "SURYAKUMAR YADAV CATCH! Miller gone for 21!",
+    "why": "Incredible boundary juggling catch seals the World Cup on the first ball of over 20.",
+    "novice_note": "Catching inside the boundary rope without touching it sends the dangerous finisher back.",
+    "tags": ["wicket", "miracle-catch", "championship-decider"]
+  },
+  "f1-006": {
+    "event_id": "f1-006",
+    "importance": 10,
+    "alert": "VERSTAPPEN OVERTAKES HAMILTON ON FINAL LAP!",
+    "why": "Turn 5 dive down the inside secures the lead and the 2021 World Drivers' Championship.",
+    "novice_note": "An overtake on the final lap directly decides who wins the race and title.",
+    "tags": ["lead-change", "world-champion", "historic-moment"]
+  },
+  "cric-006": {
+    "event_id": "cric-006",
+    "importance": 7,
+    "alert": "Rabada hits four! SA needs 8 off 2 balls",
+    "why": "Boundary keeps mathematical chance alive, but India still has the upper hand.",
+    "novice_note": "A four reduces the target, but requiring four runs per ball remains very difficult.",
+    "tags": ["boundary", "final-over"]
+  },
+  "cric-007": {
+    "event_id": "cric-007",
+    "importance": 10,
+    "alert": "INDIA WINS T20 WORLD CUP BY 7 RUNS!",
+    "why": "Hardik Pandya seals victory on the final ball, ending India's 11-year ICC trophy drought.",
+    "novice_note": "The defending team restricts the batting team below the target, winning the match.",
+    "tags": ["championship-win", "match-ended"]
+  },
+  "ten-008": {
+    "event_id": "ten-008",
+    "importance": 9,
+    "alert": "Championship point for Jannik Sinner at 40-30!",
+    "why": "One point away from winning his first Grand Slam title after trailing by two sets.",
+    "novice_note": "Championship point means winning this single point awards the player the tournament trophy.",
+    "tags": ["championship-point", "match-point"]
+  },
+  "ten-009": {
+    "event_id": "ten-009",
+    "importance": 10,
+    "alert": "JANNIK SINNER WINS AUSTRALIAN OPEN!",
+    "why": "Completes historic 5-set comeback from 0-2 down to claim maiden Grand Slam title.",
+    "novice_note": "Winning three out of five sets secures the Grand Slam championship.",
+    "tags": ["grand-slam-champion", "historic-comeback"]
+  }
+}

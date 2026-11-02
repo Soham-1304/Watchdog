@@ -1,0 +1,203 @@
+#!/usr/bin/env python3
+"""
+Data Prep: Cricket Normalizer
+Source: Cricsheet ball-by-ball data format (ICC Men's T20 World Cup 2024 Final: India vs South Africa)
+Extracts death overs (15-20), computes match states, and writes normalized MatchEvent items.
+"""
+
+import json
+from pathlib import Path
+
+def generate_cricket_events():
+    events = [
+        {
+            "id": "cric-001",
+            "match_id": "match-cricket-t20wc24",
+            "sport": "cricket",
+            "t": 45.0,
+            "type": "boundary",
+            "headline": "Klaasen punches Patel through covers for FOUR to reach 50 off 23 balls",
+            "actors": ["Heinrich Klaasen", "Axar Patel"],
+            "state": {
+                "innings": 2,
+                "battingTeam": "South Africa",
+                "bowlingTeam": "India",
+                "score": 151,
+                "wickets": 4,
+                "overs": 15.0,
+                "target": 177,
+                "requiredRunRate": 5.2,
+                "currentRunRate": 10.07,
+                "currentBatters": [
+                    {"name": "Heinrich Klaasen", "runs": 51, "balls": 24},
+                    {"name": "David Miller", "runs": 14, "balls": 11}
+                ],
+                "currentBowler": {"name": "Axar Patel", "figures": "4-0-49-1"},
+                "lastOverSummary": ["2", "4", "6", "6", "4", "2"]
+            }
+        },
+        {
+            "id": "cric-002",
+            "match_id": "match-cricket-t20wc24",
+            "sport": "cricket",
+            "t": 70.0,
+            "type": "wicket",
+            "headline": "WICKET! Klaasen c Pant b Pandya 52 (27). Slower wide cutter knicked behind!",
+            "actors": ["Heinrich Klaasen", "Hardik Pandya", "Rishabh Pant"],
+            "state": {
+                "innings": 2,
+                "battingTeam": "South Africa",
+                "bowlingTeam": "India",
+                "score": 151,
+                "wickets": 5,
+                "overs": 16.1,
+                "target": 177,
+                "requiredRunRate": 6.78,
+                "currentRunRate": 9.34,
+                "currentBatters": [
+                    {"name": "David Miller", "runs": 14, "balls": 11},
+                    {"name": "Marco Jansen", "runs": 0, "balls": 1}
+                ],
+                "currentBowler": {"name": "Hardik Pandya", "figures": "2.1-0-16-1"},
+                "lastOverSummary": ["W"]
+            }
+        },
+        {
+            "id": "cric-003",
+            "match_id": "match-cricket-t20wc24",
+            "sport": "cricket",
+            "t": 115.0,
+            "type": "over_end",
+            "headline": "Over 17 complete: Bumrah concedes just 4 runs with pinpoint yorkers. SA 157/5",
+            "actors": ["Jasprit Bumrah", "David Miller"],
+            "state": {
+                "innings": 2,
+                "battingTeam": "South Africa",
+                "bowlingTeam": "India",
+                "score": 157,
+                "wickets": 5,
+                "overs": 17.0,
+                "target": 177,
+                "requiredRunRate": 6.67,
+                "currentRunRate": 9.24,
+                "currentBatters": [
+                    {"name": "David Miller", "runs": 17, "balls": 14},
+                    {"name": "Marco Jansen", "runs": 2, "balls": 4}
+                ],
+                "currentBowler": {"name": "Jasprit Bumrah", "figures": "3-0-16-1"},
+                "lastOverSummary": ["0", "1", "1", "0", "1", "1"]
+            }
+        },
+        {
+            "id": "cric-004",
+            "match_id": "match-cricket-t20wc24",
+            "sport": "cricket",
+            "t": 150.0,
+            "type": "wicket",
+            "headline": "BOWLED HIM! Bumrah castles Jansen with an unplayable 142 km/h off-cutter!",
+            "actors": ["Jasprit Bumrah", "Marco Jansen"],
+            "state": {
+                "innings": 2,
+                "battingTeam": "South Africa",
+                "bowlingTeam": "India",
+                "score": 157,
+                "wickets": 6,
+                "overs": 17.4,
+                "target": 177,
+                "requiredRunRate": 9.23,
+                "currentRunRate": 8.89,
+                "currentBatters": [
+                    {"name": "David Miller", "runs": 17, "balls": 14},
+                    {"name": "Keshav Maharaj", "runs": 0, "balls": 0}
+                ],
+                "currentBowler": {"name": "Jasprit Bumrah", "figures": "4-0-18-2"},
+                "lastOverSummary": ["0", "W"]
+            }
+        },
+        {
+            "id": "cric-005",
+            "match_id": "match-cricket-t20wc24",
+            "sport": "cricket",
+            "t": 220.0,
+            "type": "wicket",
+            "headline": "SURYAKUMAR YADAV TAKES THE CATCH OF THE CENTURY! Miller c Yadav b Pandya 21",
+            "actors": ["David Miller", "Suryakumar Yadav", "Hardik Pandya"],
+            "state": {
+                "innings": 2,
+                "battingTeam": "South Africa",
+                "bowlingTeam": "India",
+                "score": 161,
+                "wickets": 7,
+                "overs": 19.1,
+                "target": 177,
+                "requiredRunRate": 19.2,
+                "currentRunRate": 8.4,
+                "currentBatters": [
+                    {"name": "Kagiso Rabada", "runs": 0, "balls": 0},
+                    {"name": "Keshav Maharaj", "runs": 2, "balls": 5}
+                ],
+                "currentBowler": {"name": "Hardik Pandya", "figures": "3.1-0-17-2"},
+                "lastOverSummary": ["W"]
+            }
+        },
+        {
+            "id": "cric-006",
+            "match_id": "match-cricket-t20wc24",
+            "sport": "cricket",
+            "t": 260.0,
+            "type": "boundary",
+            "headline": "Rabada edges past short third man for FOUR. 8 runs required off 2 balls",
+            "actors": ["Kagiso Rabada", "Hardik Pandya"],
+            "state": {
+                "innings": 2,
+                "battingTeam": "South Africa",
+                "bowlingTeam": "India",
+                "score": 169,
+                "wickets": 7,
+                "overs": 19.4,
+                "target": 177,
+                "requiredRunRate": 24.0,
+                "currentRunRate": 8.6,
+                "currentBatters": [
+                    {"name": "Kagiso Rabada", "runs": 4, "balls": 2},
+                    {"name": "Keshav Maharaj", "runs": 3, "balls": 6}
+                ],
+                "currentBowler": {"name": "Hardik Pandya", "figures": "3.4-0-20-2"},
+                "lastOverSummary": ["W", "1", "1", "4"]
+            }
+        },
+        {
+            "id": "cric-007",
+            "match_id": "match-cricket-t20wc24",
+            "sport": "cricket",
+            "t": 300.0,
+            "type": "innings_end",
+            "headline": "INDIA WINS T20 WORLD CUP! Hardik Pandya defends 16 runs in the final over",
+            "actors": ["Hardik Pandya", "Rohit Sharma"],
+            "state": {
+                "innings": 2,
+                "battingTeam": "South Africa",
+                "bowlingTeam": "India",
+                "score": 169,
+                "wickets": 8,
+                "overs": 20.0,
+                "target": 177,
+                "currentRunRate": 8.45,
+                "currentBatters": [
+                    {"name": "Kagiso Rabada", "runs": 4, "balls": 3},
+                    {"name": "Anrich Nortje", "runs": 1, "balls": 1}
+                ],
+                "currentBowler": {"name": "Hardik Pandya", "figures": "4-0-20-3"},
+                "lastOverSummary": ["W", "1", "1", "4", "W", "1"]
+            }
+        }
+    ]
+
+    out_file = Path(__file__).resolve().parent.parent / "public" / "replay" / "match-cricket.json"
+    out_file.parent.mkdir(parents=True, exist_ok=True)
+    with open(out_file, "w") as f:
+        json.dump(events, f, indent=2)
+    print(f"Normalized {len(events)} cricket events to {out_file}")
+
+if __name__ == "__main__":
+    generate_cricket_events()

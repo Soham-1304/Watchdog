@@ -1,0 +1,191 @@
+[
+  {
+    "id": "ten-001",
+    "match_id": "match-tennis-ao24",
+    "sport": "tennis",
+    "t": 5,
+    "type": "point",
+    "headline": "Sinner unreturned first serve out wide (15-0)",
+    "actors": ["Jannik Sinner"],
+    "state": {
+      "player1": { "name": "Jannik Sinner", "seed": "4", "setsWon": 2 },
+      "player2": { "name": "Daniil Medvedev", "seed": "3", "setsWon": 2 },
+      "setScores": ["3-6", "3-6", "6-4", "6-4", "2-2"],
+      "currentSet": 5,
+      "gameScore": "15-0",
+      "server": 1,
+      "isBreakPoint": false,
+      "isSetPoint": false,
+      "isMatchPoint": false,
+      "isTiebreak": false
+    }
+  },
+  {
+    "id": "ten-002",
+    "match_id": "match-tennis-ao24",
+    "sport": "tennis",
+    "t": 25,
+    "type": "point",
+    "headline": "27-shot baseline rally ends in Medvedev backhand error (30-0)",
+    "actors": ["Jannik Sinner", "Daniil Medvedev"],
+    "state": {
+      "player1": { "name": "Jannik Sinner", "seed": "4", "setsWon": 2 },
+      "player2": { "name": "Daniil Medvedev", "seed": "3", "setsWon": 2 },
+      "setScores": ["3-6", "3-6", "6-4", "6-4", "2-2"],
+      "currentSet": 5,
+      "gameScore": "30-0",
+      "server": 1,
+      "isBreakPoint": false,
+      "isSetPoint": false,
+      "isMatchPoint": false,
+      "isTiebreak": false
+    }
+  },
+  {
+    "id": "ten-003",
+    "match_id": "match-tennis-ao24",
+    "sport": "tennis",
+    "t": 50,
+    "type": "game_end",
+    "headline": "Sinner holds to love with 198 km/h ace down the T (3-2)",
+    "actors": ["Jannik Sinner"],
+    "state": {
+      "player1": { "name": "Jannik Sinner", "seed": "4", "setsWon": 2 },
+      "player2": { "name": "Daniil Medvedev", "seed": "3", "setsWon": 2 },
+      "setScores": ["3-6", "3-6", "6-4", "6-4", "3-2"],
+      "currentSet": 5,
+      "gameScore": "0-0",
+      "server": 2,
+      "isBreakPoint": false,
+      "isSetPoint": false,
+      "isMatchPoint": false,
+      "isTiebreak": false
+    }
+  },
+  {
+    "id": "ten-004",
+    "match_id": "match-tennis-ao24",
+    "sport": "tennis",
+    "t": 100,
+    "type": "point",
+    "headline": "Medvedev double fault under relentless baseline pressure (15-30)",
+    "actors": ["Daniil Medvedev"],
+    "state": {
+      "player1": { "name": "Jannik Sinner", "seed": "4", "setsWon": 2 },
+      "player2": { "name": "Daniil Medvedev", "seed": "3", "setsWon": 2 },
+      "setScores": ["3-6", "3-6", "6-4", "6-4", "3-2"],
+      "currentSet": 5,
+      "gameScore": "15-30",
+      "server": 2,
+      "isBreakPoint": false,
+      "isSetPoint": false,
+      "isMatchPoint": false,
+      "isTiebreak": false
+    }
+  },
+  {
+    "id": "ten-005",
+    "match_id": "match-tennis-ao24",
+    "sport": "tennis",
+    "t": 145,
+    "type": "break_point",
+    "headline": "Sinner unleashes blistering inside-out forehand to earn BREAK POINT (30-40)",
+    "actors": ["Jannik Sinner", "Daniil Medvedev"],
+    "state": {
+      "player1": { "name": "Jannik Sinner", "seed": "4", "setsWon": 2 },
+      "player2": { "name": "Daniil Medvedev", "seed": "3", "setsWon": 2 },
+      "setScores": ["3-6", "3-6", "6-4", "6-4", "3-2"],
+      "currentSet": 5,
+      "gameScore": "30-40",
+      "server": 2,
+      "isBreakPoint": true,
+      "isSetPoint": false,
+      "isMatchPoint": false,
+      "isTiebreak": false
+    }
+  },
+  {
+    "id": "ten-006",
+    "match_id": "match-tennis-ao24",
+    "sport": "tennis",
+    "t": 165,
+    "type": "break",
+    "headline": "BREAK! Sinner rips crosscourt forehand winner to break Medvedev in Set 5 (4-2)",
+    "actors": ["Jannik Sinner", "Daniil Medvedev"],
+    "state": {
+      "player1": { "name": "Jannik Sinner", "seed": "4", "setsWon": 2 },
+      "player2": { "name": "Daniil Medvedev", "seed": "3", "setsWon": 2 },
+      "setScores": ["3-6", "3-6", "6-4", "6-4", "4-2"],
+      "currentSet": 5,
+      "gameScore": "0-0",
+      "server": 1,
+      "isBreakPoint": false,
+      "isSetPoint": false,
+      "isMatchPoint": false,
+      "isTiebreak": false
+    }
+  },
+  {
+    "id": "ten-007",
+    "match_id": "match-tennis-ao24",
+    "sport": "tennis",
+    "t": 205,
+    "type": "game_end",
+    "headline": "Sinner consolidates the break to 15, moving within one game of victory (5-3)",
+    "actors": ["Jannik Sinner"],
+    "state": {
+      "player1": { "name": "Jannik Sinner", "seed": "4", "setsWon": 2 },
+      "player2": { "name": "Daniil Medvedev", "seed": "3", "setsWon": 2 },
+      "setScores": ["3-6", "3-6", "6-4", "6-4", "5-3"],
+      "currentSet": 5,
+      "gameScore": "0-0",
+      "server": 1,
+      "isBreakPoint": false,
+      "isSetPoint": false,
+      "isMatchPoint": false,
+      "isTiebreak": false
+    }
+  },
+  {
+    "id": "ten-008",
+    "match_id": "match-tennis-ao24",
+    "sport": "tennis",
+    "t": 315,
+    "type": "match_point",
+    "headline": "CHAMPIONSHIP POINT! Sinner moves to 40-30 serving for the Grand Slam title",
+    "actors": ["Jannik Sinner", "Daniil Medvedev"],
+    "state": {
+      "player1": { "name": "Jannik Sinner", "seed": "4", "setsWon": 2 },
+      "player2": { "name": "Daniil Medvedev", "seed": "3", "setsWon": 2 },
+      "setScores": ["3-6", "3-6", "6-4", "6-4", "5-3"],
+      "currentSet": 5,
+      "gameScore": "40-30",
+      "server": 1,
+      "isBreakPoint": false,
+      "isSetPoint": false,
+      "isMatchPoint": true,
+      "isTiebreak": false
+    }
+  },
+  {
+    "id": "ten-009",
+    "match_id": "match-tennis-ao24",
+    "sport": "tennis",
+    "t": 340,
+    "type": "set_end",
+    "headline": "SINNER WINS AUSTRALIAN OPEN! Rips forehand down line to complete 5-set comeback",
+    "actors": ["Jannik Sinner"],
+    "state": {
+      "player1": { "name": "Jannik Sinner", "seed": "4", "setsWon": 3 },
+      "player2": { "name": "Daniil Medvedev", "seed": "3", "setsWon": 2 },
+      "setScores": ["3-6", "3-6", "6-4", "6-4", "6-3"],
+      "currentSet": 5,
+      "gameScore": "FINAL",
+      "server": 1,
+      "isBreakPoint": false,
+      "isSetPoint": false,
+      "isMatchPoint": false,
+      "isTiebreak": false
+    }
+  }
+]

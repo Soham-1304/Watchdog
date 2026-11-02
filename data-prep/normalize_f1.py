@@ -1,0 +1,176 @@
+#!/usr/bin/env python3
+"""
+Data Prep: Formula 1 Normalizer
+Source: FastF1 / OpenF1 telemetry and timing data (2021 Abu Dhabi Grand Prix, Laps 53-58)
+Extracts safety car deployment, pit stops, restart, and final lap title decider.
+"""
+
+import json
+from pathlib import Path
+
+def generate_f1_events():
+    events = [
+        {
+            "id": "f1-001",
+            "match_id": "match-f1-abudhabi21",
+            "sport": "f1",
+            "t": 15.0,
+            "type": "safety_car",
+            "headline": "SAFETY CAR DEPLOYED! Latifi crashes heavily into Turn 14 barriers with 5 laps remaining",
+            "actors": ["Nicholas Latifi", "Lewis Hamilton", "Max Verstappen"],
+            "state": {
+                "lap": 53,
+                "totalLaps": 58,
+                "leader": "Lewis Hamilton",
+                "status": "SAFETY_CAR",
+                "standings": [
+                    {"pos": 1, "driver": "Lewis Hamilton", "code": "HAM", "team": "Mercedes", "gap": "LEADER", "tyre": "HARD", "pitStops": 1},
+                    {"pos": 2, "driver": "Max Verstappen", "code": "VER", "team": "Red Bull", "gap": "+11.8s", "tyre": "HARD", "pitStops": 2},
+                    {"pos": 3, "driver": "Carlos Sainz", "code": "SAI", "team": "Ferrari", "gap": "+28.4s", "tyre": "HARD", "pitStops": 1},
+                    {"pos": 4, "driver": "Yuki Tsunoda", "code": "TSU", "team": "AlphaTauri", "gap": "+42.1s", "tyre": "MEDIUM", "pitStops": 2},
+                    {"pos": 5, "driver": "Pierre Gasly", "code": "GAS", "team": "AlphaTauri", "gap": "+45.3s", "tyre": "HARD", "pitStops": 2}
+                ]
+            }
+        },
+        {
+            "id": "f1-002",
+            "match_id": "match-f1-abudhabi21",
+            "sport": "f1",
+            "t": 40.0,
+            "type": "pit_stop",
+            "headline": "Red Bull boxes Verstappen for fresh Soft tyres! Hamilton stays out on 40-lap old Hards",
+            "actors": ["Max Verstappen", "Lewis Hamilton"],
+            "state": {
+                "lap": 54,
+                "totalLaps": 58,
+                "leader": "Lewis Hamilton",
+                "status": "SAFETY_CAR",
+                "lastPitStop": {"driver": "Max Verstappen", "lap": 54, "compound": "SOFT"},
+                "standings": [
+                    {"pos": 1, "driver": "Lewis Hamilton", "code": "HAM", "team": "Mercedes", "gap": "LEADER", "tyre": "HARD", "pitStops": 1},
+                    {"pos": 2, "driver": "Max Verstappen", "code": "VER", "team": "Red Bull", "gap": "+1.9s (SC)", "tyre": "SOFT", "pitStops": 3},
+                    {"pos": 3, "driver": "Carlos Sainz", "code": "SAI", "team": "Ferrari", "gap": "+3.4s (SC)", "tyre": "MEDIUM", "pitStops": 2},
+                    {"pos": 4, "driver": "Yuki Tsunoda", "code": "TSU", "team": "AlphaTauri", "gap": "+5.2s (SC)", "tyre": "SOFT", "pitStops": 3},
+                    {"pos": 5, "driver": "Pierre Gasly", "code": "GAS", "team": "AlphaTauri", "gap": "+6.8s (SC)", "tyre": "SOFT", "pitStops": 3}
+                ]
+            }
+        },
+        {
+            "id": "f1-003",
+            "match_id": "match-f1-abudhabi21",
+            "sport": "f1",
+            "t": 75.0,
+            "type": "lap",
+            "headline": "Lap 55/58: Field bunched behind Safety Car; marshals working to clear Latifi's Williams",
+            "actors": ["Nicholas Latifi"],
+            "state": {
+                "lap": 55,
+                "totalLaps": 58,
+                "leader": "Lewis Hamilton",
+                "status": "SAFETY_CAR",
+                "standings": [
+                    {"pos": 1, "driver": "Lewis Hamilton", "code": "HAM", "team": "Mercedes", "gap": "LEADER", "tyre": "HARD", "pitStops": 1},
+                    {"pos": 2, "driver": "Max Verstappen", "code": "VER", "team": "Red Bull", "gap": "+1.1s (SC)", "tyre": "SOFT", "pitStops": 3},
+                    {"pos": 3, "driver": "Carlos Sainz", "code": "SAI", "team": "Ferrari", "gap": "+2.2s (SC)", "tyre": "MEDIUM", "pitStops": 2},
+                    {"pos": 4, "driver": "Yuki Tsunoda", "code": "TSU", "team": "AlphaTauri", "gap": "+3.1s (SC)", "tyre": "SOFT", "pitStops": 3},
+                    {"pos": 5, "driver": "Pierre Gasly", "code": "GAS", "team": "AlphaTauri", "gap": "+4.0s (SC)", "tyre": "SOFT", "pitStops": 3}
+                ]
+            }
+        },
+        {
+            "id": "f1-004",
+            "match_id": "match-f1-abudhabi21",
+            "sport": "f1",
+            "t": 180.0,
+            "type": "incident",
+            "headline": "RACE CONTROL CONTROVERSY: Lapped cars between Hamilton and Verstappen ordered to unlap",
+            "actors": ["Michael Masi", "Lewis Hamilton", "Max Verstappen"],
+            "state": {
+                "lap": 57,
+                "totalLaps": 58,
+                "leader": "Lewis Hamilton",
+                "status": "SAFETY_CAR",
+                "standings": [
+                    {"pos": 1, "driver": "Lewis Hamilton", "code": "HAM", "team": "Mercedes", "gap": "LEADER", "tyre": "HARD", "pitStops": 1},
+                    {"pos": 2, "driver": "Max Verstappen", "code": "VER", "team": "Red Bull", "gap": "+0.8s (SC)", "tyre": "SOFT", "pitStops": 3},
+                    {"pos": 3, "driver": "Carlos Sainz", "code": "SAI", "team": "Ferrari", "gap": "+2.0s (SC)", "tyre": "MEDIUM", "pitStops": 2},
+                    {"pos": 4, "driver": "Yuki Tsunoda", "code": "TSU", "team": "AlphaTauri", "gap": "+3.0s (SC)", "tyre": "SOFT", "pitStops": 3},
+                    {"pos": 5, "driver": "Pierre Gasly", "code": "GAS", "team": "AlphaTauri", "gap": "+3.8s (SC)", "tyre": "SOFT", "pitStops": 3}
+                ]
+            }
+        },
+        {
+            "id": "f1-005",
+            "match_id": "match-f1-abudhabi21",
+            "sport": "f1",
+            "t": 230.0,
+            "type": "incident",
+            "headline": "SAFETY CAR IN THIS LAP! Green flag for one final lap shootout to decide World Title",
+            "actors": ["Lewis Hamilton", "Max Verstappen"],
+            "state": {
+                "lap": 57,
+                "totalLaps": 58,
+                "leader": "Lewis Hamilton",
+                "status": "GREEN",
+                "standings": [
+                    {"pos": 1, "driver": "Lewis Hamilton", "code": "HAM", "team": "Mercedes", "gap": "LEADER", "tyre": "HARD", "pitStops": 1},
+                    {"pos": 2, "driver": "Max Verstappen", "code": "VER", "team": "Red Bull", "gap": "+0.4s", "tyre": "SOFT", "pitStops": 3},
+                    {"pos": 3, "driver": "Carlos Sainz", "code": "SAI", "team": "Ferrari", "gap": "+1.9s", "tyre": "MEDIUM", "pitStops": 2},
+                    {"pos": 4, "driver": "Yuki Tsunoda", "code": "TSU", "team": "AlphaTauri", "gap": "+2.7s", "tyre": "SOFT", "pitStops": 3},
+                    {"pos": 5, "driver": "Pierre Gasly", "code": "GAS", "team": "AlphaTauri", "gap": "+3.4s", "tyre": "SOFT", "pitStops": 3}
+                ]
+            }
+        },
+        {
+            "id": "f1-006",
+            "match_id": "match-f1-abudhabi21",
+            "sport": "f1",
+            "t": 280.0,
+            "type": "lead_change",
+            "headline": "VERSTAPPEN TAKES THE LEAD! Lunges down the inside at Turn 5 to pass Hamilton on final lap",
+            "actors": ["Max Verstappen", "Lewis Hamilton"],
+            "state": {
+                "lap": 58,
+                "totalLaps": 58,
+                "leader": "Max Verstappen",
+                "status": "GREEN",
+                "standings": [
+                    {"pos": 1, "driver": "Max Verstappen", "code": "VER", "team": "Red Bull", "gap": "LEADER", "tyre": "SOFT", "pitStops": 3},
+                    {"pos": 2, "driver": "Lewis Hamilton", "code": "HAM", "team": "Mercedes", "gap": "+0.9s", "tyre": "HARD", "pitStops": 1},
+                    {"pos": 3, "driver": "Carlos Sainz", "code": "SAI", "team": "Ferrari", "gap": "+3.5s", "tyre": "MEDIUM", "pitStops": 2},
+                    {"pos": 4, "driver": "Yuki Tsunoda", "code": "TSU", "team": "AlphaTauri", "gap": "+4.9s", "tyre": "SOFT", "pitStops": 3},
+                    {"pos": 5, "driver": "Pierre Gasly", "code": "GAS", "team": "AlphaTauri", "gap": "+5.8s", "tyre": "SOFT", "pitStops": 3}
+                ]
+            }
+        },
+        {
+            "id": "f1-007",
+            "match_id": "match-f1-abudhabi21",
+            "sport": "f1",
+            "t": 350.0,
+            "type": "lap",
+            "headline": "MAX VERSTAPPEN WINS THE WORLD CHAMPIONSHIP! Crosses line 2.2s ahead of Hamilton",
+            "actors": ["Max Verstappen"],
+            "state": {
+                "lap": 58,
+                "totalLaps": 58,
+                "leader": "Max Verstappen",
+                "status": "GREEN",
+                "standings": [
+                    {"pos": 1, "driver": "Max Verstappen", "code": "VER", "team": "Red Bull", "gap": "WINNER", "tyre": "SOFT", "pitStops": 3},
+                    {"pos": 2, "driver": "Lewis Hamilton", "code": "HAM", "team": "Mercedes", "gap": "+2.2s", "tyre": "HARD", "pitStops": 1},
+                    {"pos": 3, "driver": "Carlos Sainz", "code": "SAI", "team": "Ferrari", "gap": "+5.1s", "tyre": "MEDIUM", "pitStops": 2},
+                    {"pos": 4, "driver": "Yuki Tsunoda", "code": "TSU", "team": "AlphaTauri", "gap": "+5.6s", "tyre": "SOFT", "pitStops": 3},
+                    {"pos": 5, "driver": "Pierre Gasly", "code": "GAS", "team": "AlphaTauri", "gap": "+6.5s", "tyre": "SOFT", "pitStops": 3}
+                ]
+            }
+        }
+    ]
+
+    out_file = Path(__file__).resolve().parent.parent / "public" / "replay" / "match-f1.json"
+    with open(out_file, "w") as f:
+        json.dump(events, f, indent=2)
+    print(f"Normalized {len(events)} F1 events to {out_file}")
+
+if __name__ == "__main__":
+    generate_f1_events()

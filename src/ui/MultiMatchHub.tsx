@@ -15,7 +15,7 @@ export function MultiMatchHub() {
   const activeMatchId = useReplayStore((s) => s.activeMatchId);
   const currentTime = useReplayStore((s) => s.currentTime);
   const switchMatch = useReplayStore((s) => s.switchMatch);
-  const setActivePage = useReplayStore((s) => s.setActivePage);
+  const setCurrentPage = useReplayStore((s) => s.setCurrentPage);
   const settings = useReplayStore((s) => s.settings);
   const updateSettings = useReplayStore((s) => s.updateSettings);
   const suppressedEvents = useReplayStore((s) => s.suppressedEvents);
@@ -27,7 +27,7 @@ export function MultiMatchHub() {
 
   const handleWatchStream = (matchId: string) => {
     switchMatch(matchId);
-    setActivePage('stream');
+    setCurrentPage('match');
   };
 
   const isSportPinned = (sport: string) => {

@@ -7,6 +7,7 @@ export function AlertCard() {
   const settings = useReplayStore((s) => s.settings);
   const dismissAlert = useReplayStore((s) => s.dismissAlert);
   const switchMatch = useReplayStore((s) => s.switchMatch);
+  const setCurrentPage = useReplayStore((s) => s.setCurrentPage);
 
   const [isHovered, setIsHovered] = useState(false);
   const [holdProgress, setHoldProgress] = useState(0);
@@ -30,6 +31,7 @@ export function AlertCard() {
 
   const handleSwitch = () => {
     switchMatch(activeAlert.event.match_id);
+    setCurrentPage('match');
     dismissAlert();
   };
 

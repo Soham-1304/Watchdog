@@ -52,7 +52,9 @@ interface ReplayStoreState {
   totalAlertsCount: number;
 
   // Modals & Panels
-  activePage: 'stream' | 'hub';
+  currentPage: 'home' | 'match';
+  quickWatchList: string[];
+  settingsTab: 'profile' | 'quickwatch' | 'cutaway';
   isFilteredDrawerOpen: boolean;
   isSettingsDrawerOpen: boolean;
   isInPlayerHUDOpen: boolean;
@@ -60,7 +62,9 @@ interface ReplayStoreState {
   demoStep: number;
 
   // Actions
-  setActivePage: (page: 'stream' | 'hub') => void;
+  setCurrentPage: (page: 'home' | 'match') => void;
+  toggleQuickWatch: (matchId: string) => void;
+  setSettingsTab: (tab: 'profile' | 'quickwatch' | 'cutaway') => void;
   initialize: () => Promise<void>;
   play: () => void;
   pause: () => void;
@@ -121,14 +125,24 @@ export const useReplayStore = create<ReplayStoreState>((set, get) => ({
   totalEvaluatedCount: 0,
   totalAlertsCount: 0,
 
-  activePage: 'stream',
+  currentPage: 'home',
+  quickWatchList: ['match-cricket-t20', 'match-f1-abudhabi', 'match-tennis-ao24'],
+  settingsTab: 'cutaway',
   isFilteredDrawerOpen: false,
   isSettingsDrawerOpen: false,
   isInPlayerHUDOpen: false,
   isGuidedDemoActive: false,
   demoStep: 0,
 
-  setActivePage: (page) => set({ activePage: page }),
+  setCurrentPage: (page) => set({ currentPage: page }),
+  toggleQuickWatch: (matchId) => {
+    const current = get().quickWatchList;
+    const next = current.includes(matchId)
+      ? current.filter((id) => id !== matchId)
+      : [...current, matchId];
+    set({ quickWatchList: next });
+  },
+  setSettingsTab: (tab) => set({ settingsTab: tab }),
 
   initialize: async () => {
     if (get().isLoaded) return;
@@ -242,6 +256,17 @@ export const useReplayStore = create<ReplayStoreState>((set, get) => ({
           score: alert.importance,
           reason: 'below_threshold',
           details: 'AI cues toggled OFF in stream player HUD (like CC disabled)',
+        });
+        continue;
+      }
+
+      // Check if this match is in the user's QuickWatch list
+      if (state.quickWatchList.length > 0 && !state.quickWatchList.includes(event.match_id)) {
+        newSuppressed.unshift({
+          event,
+          score: alert.importance,
+          reason: 'below_threshold',
+          details: 'Match not in user QuickWatch sentinel list',
         });
         continue;
       }

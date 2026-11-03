@@ -11,11 +11,14 @@ import {
   Pause,
   ChevronRight,
   ShieldAlert,
+  Plus,
+  Check,
 } from 'lucide-react';
 import { useReplayStore } from '../store/useReplayStore';
 import { replayAdapter } from '../adapters/replayAdapter';
 import { CricketState, F1State, TennisState } from '../types';
 import { InPlayerHUD } from './InPlayerHUD';
+import { CatchUpCard } from './CatchUpCard';
 
 export function NowWatching() {
   const activeMatchId = useReplayStore((s) => s.activeMatchId);
@@ -26,8 +29,11 @@ export function NowWatching() {
   const isInPlayerHUDOpen = useReplayStore((s) => s.isInPlayerHUDOpen);
   const setIsInPlayerHUDOpen = useReplayStore((s) => s.setIsInPlayerHUDOpen);
   const setSettingsDrawerOpen = useReplayStore((s) => s.setSettingsDrawerOpen);
+  const setSettingsTab = useReplayStore((s) => s.setSettingsTab);
   const settings = useReplayStore((s) => s.settings);
   const switchMatch = useReplayStore((s) => s.switchMatch);
+  const quickWatchList = useReplayStore((s) => s.quickWatchList);
+  const toggleQuickWatch = useReplayStore((s) => s.toggleQuickWatch);
 
   const [isMuted, setIsMuted] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -36,10 +42,13 @@ export function NowWatching() {
   const otherMatches = matches.filter((m) => m.id !== activeMatchId);
   const latestEvent = replayAdapter.getLatestEventForMatch(activeMatchId, currentTime);
 
+  const isCurrentInQuickWatch = activeMatch && quickWatchList.includes(activeMatch.id);
+
   // Get active sentinel alerts across concurrent streams for FanCode's native sparkle slot
   const concurrentAlerts = otherMatches.map((m) => {
     const ev = replayAdapter.getLatestEventForMatch(m.id, currentTime);
-    return { match: m, event: ev };
+    const inQuick = quickWatchList.includes(m.id);
+    return { match: m, event: ev, inQuick };
   });
 
   if (!activeMatch) {
@@ -53,7 +62,10 @@ export function NowWatching() {
   const state = latestEvent?.state;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5 animate-ticker-slide">
+      {/* "Since You Left" Catch-Up Brief (Appears when returning to a stream) */}
+      <CatchUpCard />
+
       {/* 16:9 Broadcast Video Container */}
       <div
         className={`relative w-full rounded-2xl sm:rounded-3xl overflow-hidden bg-black border border-broadcast-border shadow-2xl transition-all ${
@@ -104,7 +116,7 @@ export function NowWatching() {
 
         {/* Top Overlay Bar */}
         <div className="absolute top-0 inset-x-0 p-3 sm:p-5 flex items-center justify-between z-30 bg-gradient-to-b from-black/80 via-black/40 to-transparent">
-          {/* Match & Court Title (Matches FanCode Mobile Screenshot 3) */}
+          {/* Match & Court Title + QuickWatch Toggle directly on video */}
           <div className="flex items-center gap-2 sm:gap-3">
             <span className="text-xs sm:text-sm font-black text-white tracking-wide flex items-center gap-1.5 drop-shadow-md">
               {activeMatch.sport === 'tennis'
@@ -114,13 +126,26 @@ export function NowWatching() {
                 : 'Main Broadcast Feed'}
               <ChevronRight className="w-3.5 h-3.5 text-zinc-400" />
             </span>
-            <span className="hidden sm:inline-block text-xs font-semibold text-zinc-300 drop-shadow">
+            <span className="hidden sm:inline-block text-xs font-semibold text-zinc-300 drop-shadow truncate max-w-[240px]">
               {activeMatch.title}
             </span>
+
+            {/* In-Stream Add to QuickWatch Button */}
+            <button
+              onClick={() => toggleQuickWatch(activeMatch.id)}
+              className={`hidden md:flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border transition-all ${
+                isCurrentInQuickWatch
+                  ? 'bg-emerald-500/25 border-emerald-500/40 text-emerald-300'
+                  : 'bg-black/40 border-white/15 text-zinc-300 hover:text-white'
+              }`}
+            >
+              {isCurrentInQuickWatch ? <Check className="w-3 h-3 text-emerald-400" /> : <Plus className="w-3 h-3" />}
+              <span>{isCurrentInQuickWatch ? 'In QuickWatch' : '+ QuickWatch'}</span>
+            </button>
           </div>
 
           {/* FanCode Watermark & Quick Actions */}
-          <div className="flex items-center gap-2 sm:gap-3.5">
+          <div className="flex items-center gap-2 sm:gap-3">
             {/* FanCode Live Watermark */}
             <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-black/40 backdrop-blur-md border border-white/10 text-[10px] sm:text-xs font-black tracking-widest text-white">
               <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping"></span>
@@ -149,7 +174,10 @@ export function NowWatching() {
 
             {/* Stream Settings */}
             <button
-              onClick={() => setSettingsDrawerOpen(true)}
+              onClick={() => {
+                setSettingsTab('cutaway');
+                setSettingsDrawerOpen(true);
+              }}
               className="p-1.5 sm:p-2 rounded-xl bg-black/50 hover:bg-black/80 border border-white/10 text-zinc-300 hover:text-white backdrop-blur-md transition-all"
               title="Preferences & Telemetry"
             >
@@ -227,7 +255,7 @@ export function NowWatching() {
         <InPlayerHUD />
       </div>
 
-      {/* FanCode Native AI Card Slot (Upgraded Below-Player Experience - FanCode Screenshot 2) */}
+      {/* FanCode Native AI Card Slot (Below-Player Slot - FanCode Screenshot 2) */}
       <div className="broadcast-glass rounded-2xl p-4 sm:p-5 border border-white/10 shadow-xl relative overflow-hidden">
         <div className="flex items-start justify-between gap-4 mb-2">
           <div className="flex items-center gap-2">
@@ -239,7 +267,7 @@ export function NowWatching() {
                 Last Updated just now · Powered by Cutaway AI Sentinel
               </span>
               <h3 className="text-sm font-extrabold text-white">
-                Live Multi-Court Intelligence & Cross-Stream Cues
+                Live QuickWatch Intelligence across Concurrent Streams
               </h3>
             </div>
           </div>
@@ -253,20 +281,20 @@ export function NowWatching() {
         </div>
 
         <p className="text-xs text-zinc-300 leading-relaxed mb-3">
-          Cutaway monitors concurrent live events in the background without burning user bandwidth.
-          When high-leverage moments trigger on other streams, alerts appear directly on your video
-          canvas.
+          Cutaway monitors your QuickWatch list without consuming video bandwidth. When high-leverage turning points happen on concurrent matches, you get instant 7-second overlays directly on your stream canvas.
         </p>
 
         {/* Mini Sentinel Status Strip Across Concurrent Matches */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2 border-t border-white/5">
-          {concurrentAlerts.map(({ match, event }) => (
+          {concurrentAlerts.map(({ match, event, inQuick }) => (
             <div
               key={match.id}
-              onClick={() => switchMatch(match.id)}
-              className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 cursor-pointer transition-all flex items-center justify-between group"
+              className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all flex items-center justify-between group"
             >
-              <div className="flex items-center gap-2 truncate">
+              <div
+                onClick={() => switchMatch(match.id)}
+                className="flex items-center gap-2 truncate cursor-pointer flex-1"
+              >
                 <span className="text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-white/10 text-broadcast-muted">
                   {match.sport}
                 </span>
@@ -274,11 +302,29 @@ export function NowWatching() {
                   {match.title}
                 </span>
               </div>
-              <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                <span className="text-[10px] text-zinc-400">
+
+              <div className="flex items-center gap-2 shrink-0 ml-2">
+                <span className="text-[10px] text-zinc-400 hidden sm:inline">
                   {event ? event.headline.slice(0, 24) + '...' : 'Live'}
                 </span>
-                <ChevronRight className="w-3.5 h-3.5 text-zinc-500 group-hover:text-broadcast-orange transition-transform group-hover:translate-x-0.5" />
+
+                {/* QuickWatch Pin Button */}
+                <button
+                  onClick={() => toggleQuickWatch(match.id)}
+                  className={`p-1 rounded-lg border text-[10px] font-bold transition-all ${
+                    inQuick
+                      ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                      : 'bg-white/5 text-zinc-400 border-white/10 hover:text-white'
+                  }`}
+                  title="Toggle QuickWatch monitoring"
+                >
+                  {inQuick ? '✓ Active' : '+ QuickWatch'}
+                </button>
+
+                <ChevronRight
+                  onClick={() => switchMatch(match.id)}
+                  className="w-4 h-4 text-zinc-500 group-hover:text-broadcast-orange cursor-pointer"
+                />
               </div>
             </div>
           ))}

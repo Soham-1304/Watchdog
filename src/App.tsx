@@ -3,21 +3,20 @@ import { useReplayStore } from './store/useReplayStore';
 import { useClockEngine } from './engine/clock';
 import { TopBar } from './ui/TopBar';
 import { NowWatching } from './ui/NowWatching';
-import { FeedStrip } from './ui/FeedStrip';
+import { MultiMatchHub } from './ui/MultiMatchHub';
 import { AlertCard } from './ui/AlertCard';
-import { CatchUpCard } from './ui/CatchUpCard';
-import { FilteredViewDrawer } from './ui/FilteredViewDrawer';
+import { ReplayControlsPill } from './ui/ReplayControlsPill';
 import { SettingsDrawer } from './ui/SettingsDrawer';
 import { GuidedDemoTour } from './ui/GuidedDemoTour';
 
 export default function App() {
   const isLoaded = useReplayStore((s) => s.isLoaded);
   const initialize = useReplayStore((s) => s.initialize);
+  const activePage = useReplayStore((s) => s.activePage);
   const togglePlay = useReplayStore((s) => s.togglePlay);
   const matches = useReplayStore((s) => s.matches);
   const switchMatch = useReplayStore((s) => s.switchMatch);
   const dismissAlert = useReplayStore((s) => s.dismissAlert);
-  const setFilteredDrawerOpen = useReplayStore((s) => s.setFilteredDrawerOpen);
   const setSettingsDrawerOpen = useReplayStore((s) => s.setSettingsDrawerOpen);
   const startGuidedDemo = useReplayStore((s) => s.startGuidedDemo);
 
@@ -37,7 +36,6 @@ export default function App() {
   // Keyboard navigation shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore if typing in an input field
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
         return;
       }
@@ -47,7 +45,6 @@ export default function App() {
         togglePlay();
       } else if (e.key === 'Escape') {
         dismissAlert();
-        setFilteredDrawerOpen(false);
         setSettingsDrawerOpen(false);
       } else if (e.key === '1' && matches[0]) {
         switchMatch(matches[0].id);
@@ -60,57 +57,56 @@ export default function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [togglePlay, dismissAlert, setFilteredDrawerOpen, setSettingsDrawerOpen, matches, switchMatch]);
+  }, [togglePlay, dismissAlert, setSettingsDrawerOpen, matches, switchMatch]);
 
   if (!isLoaded) {
     return (
-      <div className="min-h-screen bg-broadcast-canvas flex flex-col items-center justify-center text-white p-6">
-        <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-broadcast-orange to-broadcast-amber flex items-center justify-center text-white font-black text-2xl shadow-2xl shadow-broadcast-orange/40 animate-pulse mb-4 ring-1 ring-white/20">
-          C
+      <div className="min-h-screen bg-[#090A0C] flex flex-col items-center justify-center text-white p-6">
+        <div className="w-12 h-12 rounded-2xl bg-broadcast-orange flex items-center justify-center text-white font-black text-2xl shadow-2xl shadow-broadcast-orange/40 animate-pulse mb-3">
+          F
         </div>
-        <h2 className="text-xl font-black tracking-tight">Initializing Cutaway Engine...</h2>
-        <p className="text-xs text-broadcast-muted mt-1.5 font-medium">Synchronizing live multi-sport broadcast streams</p>
+        <h2 className="text-lg font-bold tracking-tight">Loading FanCode Cutaway...</h2>
+        <p className="text-xs text-zinc-500 mt-1 font-medium">Synchronizing live match feeds</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-broadcast-canvas text-broadcast-text flex flex-col justify-between selection:bg-broadcast-orange selection:text-white">
-      {/* Top Application Bar */}
+    <div className="min-h-screen bg-[#090A0C] text-[#F4F4F6] flex flex-col justify-between selection:bg-broadcast-orange selection:text-white pb-20">
+      {/* FanCode Header & View Navigation */}
       <TopBar />
 
-      {/* Main Streaming Canvas */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
-        {/* Catch-Up Card (Appears if user switches back to previous match) */}
-        <CatchUpCard />
-
-        {/* Now Watching Stand-in Video Player */}
-        <NowWatching />
-
-        {/* Other Feeds Strip */}
-        <FeedStrip />
+      {/* Main Content Area */}
+      <main className="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-5 lg:p-6">
+        {activePage === 'stream' ? (
+          /* PAGE 1: Authentic Live Match Streaming View */
+          <NowWatching />
+        ) : (
+          /* PAGE 2: Multi-Match Overview, Catch-Up & Transparency Hub */
+          <MultiMatchHub />
+        )}
       </main>
 
-      {/* Slide-in Alert Card */}
+      {/* Floating 7-Second Pivotal Moment Alert Card */}
       <AlertCard />
 
-      {/* Filtered View Drawer (Proof of Restraint) */}
-      <FilteredViewDrawer />
+      {/* Sleek Floating Simulation Replay Controller Pill */}
+      <ReplayControlsPill />
 
       {/* Settings Drawer */}
       <SettingsDrawer />
 
-      {/* 3-Step Guided Demo Tour */}
+      {/* 3-Step Guided Tour */}
       <GuidedDemoTour />
 
-      {/* Footer & Data Attribution */}
-      <footer className="border-t border-broadcast-border/60 py-5 px-6 text-center text-xs text-broadcast-subtle bg-broadcast-surface/40 mt-10">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="font-medium">
-            <strong className="text-broadcast-muted font-bold">Cutaway</strong> · Scalable AI Companion built for Dream Sports / FanCode FDE Evaluation.
+      {/* Subtle Broadcast Attribution Footer */}
+      <footer className="border-t border-white/5 py-4 px-6 text-center text-xs text-zinc-500 mt-8">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px]">
+          <p>
+            <span className="text-zinc-400 font-bold">Cutaway for FanCode</span> · Real-time multi-match live sports companion layer.
           </p>
-          <p className="text-[11px] font-mono-numbers">
-            Telemetry: Cricsheet (T20 WC) · FastF1 (Abu Dhabi GP) · Jeff Sackmann (Grand Slam Tennis).
+          <p className="font-mono-numbers text-zinc-600">
+            Telemetry: Cricsheet (T20 WC) · FastF1 (Abu Dhabi GP) · Jeff Sackmann (Grand Slam Tennis)
           </p>
         </div>
       </footer>

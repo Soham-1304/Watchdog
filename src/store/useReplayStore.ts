@@ -52,12 +52,15 @@ interface ReplayStoreState {
   totalAlertsCount: number;
 
   // Modals & Panels
+  activePage: 'stream' | 'hub';
   isFilteredDrawerOpen: boolean;
   isSettingsDrawerOpen: boolean;
+  isInPlayerHUDOpen: boolean;
   isGuidedDemoActive: boolean;
   demoStep: number;
 
   // Actions
+  setActivePage: (page: 'stream' | 'hub') => void;
   initialize: () => Promise<void>;
   play: () => void;
   pause: () => void;
@@ -70,6 +73,8 @@ interface ReplayStoreState {
   dismissAlert: () => void;
   dismissCatchUp: () => void;
   updateSettings: (partial: Partial<UserSettings>) => void;
+  toggleAIEnabled: () => void;
+  setIsInPlayerHUDOpen: (open: boolean) => void;
   setFilteredDrawerOpen: (open: boolean) => void;
   setSettingsDrawerOpen: (open: boolean) => void;
   startGuidedDemo: () => void;
@@ -98,13 +103,17 @@ export const useReplayStore = create<ReplayStoreState>((set, get) => ({
   delayedAlertQueue: [],
 
   settings: {
+    enabled: true,
+    contentDepth: 'tactical',
+    audienceMode: 'novice',
+    alertStyle: 'card',
     pins: {
       sports: ['tennis'],
       players: ['Sinner'],
     },
     threshold: 7,
     delaySeconds: 0,
-    novice: false,
+    novice: true,
     liveAI: false,
   },
 
@@ -112,10 +121,14 @@ export const useReplayStore = create<ReplayStoreState>((set, get) => ({
   totalEvaluatedCount: 0,
   totalAlertsCount: 0,
 
+  activePage: 'stream',
   isFilteredDrawerOpen: false,
   isSettingsDrawerOpen: false,
+  isInPlayerHUDOpen: false,
   isGuidedDemoActive: false,
   demoStep: 0,
+
+  setActivePage: (page) => set({ activePage: page }),
 
   initialize: async () => {
     if (get().isLoaded) return;
@@ -222,6 +235,17 @@ export const useReplayStore = create<ReplayStoreState>((set, get) => ({
         continue;
       }
 
+      // Check if AI Sentinel is toggled OFF in-player
+      if (!state.settings.enabled) {
+        newSuppressed.unshift({
+          event,
+          score: alert.importance,
+          reason: 'below_threshold',
+          details: 'AI cues toggled OFF in stream player HUD (like CC disabled)',
+        });
+        continue;
+      }
+
       // 3. Filters & Threshold
       const filterResult = evaluateAlertFilter(
         event,
@@ -276,8 +300,8 @@ export const useReplayStore = create<ReplayStoreState>((set, get) => ({
     // Manage active alert display
     let nextActiveAlert = state.activeAlert;
     if (nextActiveAlert) {
-      // Auto-dismiss alert after 9 seconds of replay time
-      if (nextT - nextActiveAlert.firedAtClockTime >= 9) {
+      // Auto-dismiss alert after 7 seconds of replay time (FanCode native timing)
+      if (nextT - nextActiveAlert.firedAtClockTime >= 7) {
         nextActiveAlert = null;
       }
     }
@@ -354,6 +378,14 @@ export const useReplayStore = create<ReplayStoreState>((set, get) => ({
     }));
   },
 
+  toggleAIEnabled: () => {
+    set((s) => ({
+      settings: { ...s.settings, enabled: !s.settings.enabled },
+    }));
+  },
+
+  setIsInPlayerHUDOpen: (open) => set({ isInPlayerHUDOpen: open }),
+
   setFilteredDrawerOpen: (open) => set({ isFilteredDrawerOpen: open }),
   setSettingsDrawerOpen: (open) => set({ isSettingsDrawerOpen: open }),
 
@@ -374,6 +406,10 @@ export const useReplayStore = create<ReplayStoreState>((set, get) => ({
       totalAlertsCount: 0,
       activeCatchUp: null,
       settings: {
+        enabled: true,
+        contentDepth: 'tactical',
+        audienceMode: 'novice',
+        alertStyle: 'card',
         pins: {
           sports: ['tennis'],
           players: ['Sinner'],

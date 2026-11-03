@@ -1,20 +1,46 @@
-import { Activity, Trophy, MapPin, Flag, Flame, Volume2, Maximize2, ShieldAlert } from 'lucide-react';
+import { useState } from 'react';
+import {
+  Flame,
+  Volume2,
+  VolumeX,
+  Maximize2,
+  Sparkles,
+  Settings,
+  Radio,
+  Play,
+  Pause,
+  ChevronRight,
+  ShieldAlert,
+} from 'lucide-react';
 import { useReplayStore } from '../store/useReplayStore';
 import { replayAdapter } from '../adapters/replayAdapter';
 import { CricketState, F1State, TennisState } from '../types';
+import { InPlayerHUD } from './InPlayerHUD';
 
 export function NowWatching() {
   const activeMatchId = useReplayStore((s) => s.activeMatchId);
   const currentTime = useReplayStore((s) => s.currentTime);
   const matches = useReplayStore((s) => s.matches);
+  const isPlaying = useReplayStore((s) => s.isPlaying);
+  const togglePlay = useReplayStore((s) => s.togglePlay);
+  const isInPlayerHUDOpen = useReplayStore((s) => s.isInPlayerHUDOpen);
+  const setIsInPlayerHUDOpen = useReplayStore((s) => s.setIsInPlayerHUDOpen);
+  const setSettingsDrawerOpen = useReplayStore((s) => s.setSettingsDrawerOpen);
+  const settings = useReplayStore((s) => s.settings);
+  const switchMatch = useReplayStore((s) => s.switchMatch);
+
+  const [isMuted, setIsMuted] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const activeMatch = matches.find((m) => m.id === activeMatchId);
+  const otherMatches = matches.filter((m) => m.id !== activeMatchId);
   const latestEvent = replayAdapter.getLatestEventForMatch(activeMatchId, currentTime);
-  const recentEvents = replayAdapter
-    .getEventsForMatch(activeMatchId)
-    .filter((e) => e.t <= currentTime)
-    .slice(-4)
-    .reverse();
+
+  // Get active sentinel alerts across concurrent streams for FanCode's native sparkle slot
+  const concurrentAlerts = otherMatches.map((m) => {
+    const ev = replayAdapter.getLatestEventForMatch(m.id, currentTime);
+    return { match: m, event: ev };
+  });
 
   if (!activeMatch) {
     return (
@@ -27,384 +53,338 @@ export function NowWatching() {
   const state = latestEvent?.state;
 
   return (
-    <div className="broadcast-glass rounded-2xl overflow-hidden shadow-2xl flex flex-col border border-broadcast-border relative">
-      {/* Broadcast Stream Header & Player Controls */}
-      <div className="bg-broadcast-card/95 px-5 py-3 border-b border-broadcast-border flex flex-wrap items-center justify-between gap-2.5">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-red-500/15 border border-red-500/30 text-red-400 text-xs font-black tracking-wider uppercase">
-            <span className="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
-            LIVE BROADCAST
-          </div>
-          <span className="text-xs font-black text-broadcast-orange uppercase tracking-wider bg-broadcast-orange/10 px-2.5 py-0.5 rounded-md border border-broadcast-orange/25">
-            {activeMatch.sport}
-          </span>
-          <h2 className="text-sm font-extrabold text-white tracking-wide truncate max-w-[260px] sm:max-w-md">
-            {activeMatch.title}
-          </h2>
-        </div>
+    <div className="space-y-4">
+      {/* 16:9 Broadcast Video Container */}
+      <div
+        className={`relative w-full rounded-2xl sm:rounded-3xl overflow-hidden bg-black border border-broadcast-border shadow-2xl transition-all ${
+          isFullscreen ? 'fixed inset-0 z-50 rounded-none border-none' : 'aspect-video max-h-[580px]'
+        }`}
+      >
+        {/* Background Sports Broadcast Simulation */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
+          {/* Simulated court/pitch/track gradient with dynamic ambient arena lights */}
+          <div
+            className={`w-full h-full bg-gradient-to-tr ${
+              activeMatch.sport === 'tennis'
+                ? 'from-[#0d1f18] via-[#091512] to-[#122b22]'
+                : activeMatch.sport === 'f1'
+                ? 'from-[#1a0a0c] via-[#10080a] to-[#250e12]'
+                : 'from-[#0e1624] via-[#090d16] to-[#14233a]'
+            }`}
+          >
+            {/* Grid texture for field lines */}
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)]"></div>
 
-        <div className="flex items-center gap-3.5 text-xs text-broadcast-muted">
-          <div className="hidden sm:flex items-center gap-1.5">
-            <Trophy className="w-3.5 h-3.5 text-amber-400" />
-            <span className="font-semibold text-zinc-300">{activeMatch.tournament}</span>
-          </div>
-          {activeMatch.venue && (
-            <div className="hidden md:flex items-center gap-1.5">
-              <MapPin className="w-3.5 h-3.5 text-broadcast-subtle" />
-              <span>{activeMatch.venue}</span>
-            </div>
-          )}
-          {/* Simulated stream player status */}
-          <div className="flex items-center gap-2 bg-broadcast-canvas px-2.5 py-1 rounded-lg border border-broadcast-border text-[11px] font-mono-numbers">
-            <span className="text-emerald-400 font-bold">1080p60</span>
-            <span className="text-broadcast-subtle">·</span>
-            <span className="text-zinc-400">1.2s lag</span>
-            <Volume2 className="w-3.5 h-3.5 text-broadcast-subtle ml-1 cursor-pointer hover:text-white" />
-            <Maximize2 className="w-3.5 h-3.5 text-broadcast-subtle cursor-pointer hover:text-white" />
-          </div>
-        </div>
-      </div>
-
-      {/* Main Stream Canvas */}
-      <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between bg-gradient-to-b from-[#101217] via-broadcast-canvas to-broadcast-canvas relative min-h-[380px]">
-        {/* Subtle grid background */}
-        <div className="absolute inset-0 bg-[radial-gradient(#262933_1px,transparent_1px)] [background-size:20px_20px] opacity-30 pointer-events-none"></div>
-
-        {/* Dynamic Sport-Specific Scoreboard */}
-        <div className="relative z-10">
-          {activeMatch.sport === 'tennis' && state && (
-            <TennisBoard state={state as TennisState} />
-          )}
-
-          {activeMatch.sport === 'f1' && state && (
-            <F1Board state={state as F1State} />
-          )}
-
-          {activeMatch.sport === 'cricket' && state && (
-            <CricketBoard state={state as CricketState} />
-          )}
-        </div>
-
-        {/* Live Timeline Ticker */}
-        <div className="relative z-10 mt-6 pt-4 border-t border-broadcast-border/80">
-          <div className="flex items-center justify-between mb-2.5">
-            <span className="text-xs font-black uppercase tracking-wider text-broadcast-muted flex items-center gap-1.5">
-              <Activity className="w-3.5 h-3.5 text-broadcast-orange" />
-              Live Match Telemetry Feed
-            </span>
-            <span className="text-[11px] text-broadcast-subtle">Synced to stream PTS</span>
-          </div>
-
-          <div className="space-y-1.5">
-            {recentEvents.length > 0 ? (
-              recentEvents.map((ev, idx) => (
-                <div
-                  key={ev.id}
-                  className={`text-xs flex items-center justify-between px-3.5 py-2 rounded-xl border transition-all animate-ticker-slide ${
-                    idx === 0
-                      ? 'bg-broadcast-orange/15 border-broadcast-orange/40 text-white font-semibold shadow-md shadow-broadcast-orange/10'
-                      : 'bg-broadcast-card/60 border-broadcast-border/60 text-broadcast-muted'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <span className="font-mono-numbers text-[11px] font-bold text-broadcast-orange">
-                      {Math.floor(ev.t / 60)}:{String(Math.floor(ev.t % 60)).padStart(2, '0')}
-                    </span>
-                    <span className="truncate">{ev.headline}</span>
-                  </div>
-                  {idx === 0 && (
-                    <span className="text-[10px] uppercase font-black text-broadcast-orange px-2 py-0.5 rounded bg-broadcast-orange/20 border border-broadcast-orange/30">
-                      CURRENT
-                    </span>
-                  )}
+            {/* Simulated Live Action Visual Elements */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              {activeMatch.sport === 'tennis' && (
+                <div className="relative w-4/5 h-3/5 border-2 border-white/20 rounded-lg flex items-center justify-center">
+                  <div className="absolute inset-x-0 h-0.5 bg-white/40"></div>
+                  <div className="w-0.5 h-full bg-white/40"></div>
+                  <div className="absolute w-2 h-2 rounded-full bg-lime-400 shadow-[0_0_15px_#a3e635] animate-ping"></div>
                 </div>
-              ))
-            ) : (
-              <div className="text-xs text-broadcast-subtle italic py-2">
-                Awaiting match progression on replay clock...
-              </div>
+              )}
+              {activeMatch.sport === 'f1' && (
+                <div className="relative w-4/5 h-3/5 rounded-full border-4 border-dashed border-red-500/20 flex items-center justify-center">
+                  <div className="absolute top-0 w-3 h-3 rounded-full bg-red-500 shadow-[0_0_20px_#ef4444] animate-pulse"></div>
+                  <div className="text-zinc-600 font-mono text-xs uppercase tracking-widest">
+                    Telemetry Sim · GPS Lap 51
+                  </div>
+                </div>
+              )}
+              {activeMatch.sport === 'cricket' && (
+                <div className="relative w-3/5 h-4/5 border border-white/10 rounded-full flex items-center justify-center">
+                  <div className="w-16 h-36 border border-emerald-500/20 bg-emerald-950/20 rounded"></div>
+                  <div className="absolute top-1/4 w-2 h-2 rounded-full bg-broadcast-orange shadow-[0_0_15px_#ff5200] animate-bounce"></div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Top Overlay Bar */}
+        <div className="absolute top-0 inset-x-0 p-3 sm:p-5 flex items-center justify-between z-30 bg-gradient-to-b from-black/80 via-black/40 to-transparent">
+          {/* Match & Court Title (Matches FanCode Mobile Screenshot 3) */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            <span className="text-xs sm:text-sm font-black text-white tracking-wide flex items-center gap-1.5 drop-shadow-md">
+              {activeMatch.sport === 'tennis'
+                ? 'Court 1'
+                : activeMatch.sport === 'f1'
+                ? 'On-Board Cam 1'
+                : 'Main Broadcast Feed'}
+              <ChevronRight className="w-3.5 h-3.5 text-zinc-400" />
+            </span>
+            <span className="hidden sm:inline-block text-xs font-semibold text-zinc-300 drop-shadow">
+              {activeMatch.title}
+            </span>
+          </div>
+
+          {/* FanCode Watermark & Quick Actions */}
+          <div className="flex items-center gap-2 sm:gap-3.5">
+            {/* FanCode Live Watermark */}
+            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-black/40 backdrop-blur-md border border-white/10 text-[10px] sm:text-xs font-black tracking-widest text-white">
+              <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping"></span>
+              <span>FANCODE</span>
+              <span className="text-red-500 font-bold">LIVE</span>
+            </div>
+
+            {/* ✦ In-Player AI Quick HUD Toggle (FanCode Screenshot 3 sparkle button) */}
+            <button
+              onClick={() => setIsInPlayerHUDOpen(!isInPlayerHUDOpen)}
+              className={`p-1.5 sm:p-2 rounded-xl border backdrop-blur-md transition-all flex items-center gap-1.5 shadow-lg ${
+                isInPlayerHUDOpen || settings.enabled
+                  ? 'bg-broadcast-orange/25 border-broadcast-orange text-broadcast-orange shadow-broadcast-orange/20'
+                  : 'bg-black/50 border-white/10 text-zinc-300 hover:text-white'
+              }`}
+              title="Cutaway AI Sentinel Controls (Stream HUD)"
+            >
+              <Sparkles className="w-4 h-4 fill-current" />
+              <span className="text-[10px] font-black uppercase tracking-wider hidden md:inline">
+                AI Sentinel
+              </span>
+              {settings.enabled && (
+                <span className="w-1.5 h-1.5 rounded-full bg-broadcast-orange animate-pulse"></span>
+              )}
+            </button>
+
+            {/* Stream Settings */}
+            <button
+              onClick={() => setSettingsDrawerOpen(true)}
+              className="p-1.5 sm:p-2 rounded-xl bg-black/50 hover:bg-black/80 border border-white/10 text-zinc-300 hover:text-white backdrop-blur-md transition-all"
+              title="Preferences & Telemetry"
+            >
+              <Settings className="w-4 h-4" />
+            </button>
+
+            {/* Fullscreen Toggle */}
+            <button
+              onClick={() => setIsFullscreen(!isFullscreen)}
+              className="p-1.5 sm:p-2 rounded-xl bg-black/50 hover:bg-black/80 border border-white/10 text-zinc-300 hover:text-white backdrop-blur-md transition-all"
+              title="Toggle Fullscreen"
+            >
+              <Maximize2 className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Dynamic Sport Broadcast Scoreboard Overlay */}
+        <div className="absolute inset-x-3 sm:inset-x-5 bottom-12 sm:bottom-16 z-20 pointer-events-none">
+          <div className="pointer-events-auto max-w-xl">
+            {activeMatch.sport === 'tennis' && state && (
+              <TennisBroadcastHUD state={state as TennisState} />
+            )}
+            {activeMatch.sport === 'f1' && state && (
+              <F1BroadcastHUD state={state as F1State} />
+            )}
+            {activeMatch.sport === 'cricket' && state && (
+              <CricketBroadcastHUD state={state as CricketState} />
             )}
           </div>
         </div>
-      </div>
-    </div>
-  );
-}
 
-/* ================= Elevated Sport Specific Scoreboards ================= */
+        {/* Bottom Stream Player Controls Bar */}
+        <div className="absolute bottom-0 inset-x-0 p-2 sm:p-3 flex items-center justify-between z-30 bg-gradient-to-t from-black/90 via-black/50 to-transparent">
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Play/Pause */}
+            <button
+              onClick={togglePlay}
+              className="p-1.5 rounded-lg text-white hover:bg-white/10 transition-colors"
+            >
+              {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+            </button>
 
-function TennisBoard({ state }: { state: TennisState }) {
-  return (
-    <div className="broadcast-glass-card rounded-2xl p-5 border border-broadcast-border shadow-xl">
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-4 pb-3 border-b border-broadcast-border/60">
-        <div>
-          <span className="text-[11px] font-extrabold uppercase tracking-widest text-broadcast-orange">
-            ROD LAVER ARENA · SET 5 DECIDER
-          </span>
-          <h3 className="text-xl font-black text-white tracking-tight mt-0.5">
-            Men's Singles Championship Final
-          </h3>
-        </div>
+            {/* Mute/Unmute */}
+            <button
+              onClick={() => setIsMuted(!isMuted)}
+              className="p-1.5 rounded-lg text-white hover:bg-white/10 transition-colors"
+            >
+              {isMuted ? <VolumeX className="w-4 h-4 text-zinc-400" /> : <Volume2 className="w-4 h-4" />}
+            </button>
 
-        <div className="flex items-center gap-2">
-          {state.isBreakPoint && (
-            <span className="px-3 py-1 rounded-lg bg-red-500/20 text-red-400 border border-red-500/40 text-xs font-black animate-pulse flex items-center gap-1.5 shadow-lg shadow-red-500/20">
-              <ShieldAlert className="w-3.5 h-3.5" />
-              BREAK POINT
-            </span>
-          )}
-          {state.isMatchPoint && (
-            <span className="px-3.5 py-1.5 rounded-lg bg-amber-500/25 text-amber-300 border border-amber-500/50 text-xs font-black animate-pulse flex items-center gap-1.5 shadow-xl shadow-amber-500/30">
-              🏆 CHAMPIONSHIP POINT
-            </span>
-          )}
-        </div>
-      </div>
-
-      <div className="overflow-x-auto">
-        <table className="w-full text-left">
-          <thead>
-            <tr className="text-xs text-broadcast-subtle border-b border-broadcast-border/40">
-              <th className="pb-2.5 font-bold tracking-wider">PLAYER</th>
-              {state.setScores.map((_, i) => (
-                <th key={i} className="pb-2.5 text-center font-bold tracking-wider w-12">
-                  SET {i + 1}
-                </th>
-              ))}
-              <th className="pb-2.5 text-center font-black text-broadcast-orange tracking-wider w-20">
-                GAME
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-broadcast-border/30">
-            {/* Player 1 */}
-            <tr className="text-sm font-bold text-white">
-              <td className="py-3 flex items-center gap-2.5">
-                {state.server === 1 && (
-                  <span className="w-3 h-3 rounded-full bg-lime-400 shadow-md shadow-lime-400/80 animate-pulse" title="Serving"></span>
-                )}
-                <span className="tracking-wide">{state.player1.name}</span>
-                {state.player1.seed && (
-                  <span className="text-[10px] font-bold text-broadcast-subtle bg-broadcast-card px-1.5 py-0.2 rounded border border-broadcast-border">
-                    #{state.player1.seed}
-                  </span>
-                )}
-              </td>
-              {state.setScores.map((score, i) => {
-                const p1Score = score.split('-')[0];
-                return (
-                  <td key={i} className="py-3 text-center font-mono-numbers text-broadcast-muted text-base">
-                    {p1Score}
-                  </td>
-                );
-              })}
-              <td className="py-3 text-center font-mono-numbers font-black text-broadcast-orange text-lg bg-broadcast-orange/15 rounded-lg">
-                {state.gameScore === 'FINAL' ? 'WON' : state.gameScore.split('-')[0]}
-              </td>
-            </tr>
-
-            {/* Player 2 */}
-            <tr className="text-sm font-bold text-white">
-              <td className="py-3 flex items-center gap-2.5">
-                {state.server === 2 && (
-                  <span className="w-3 h-3 rounded-full bg-lime-400 shadow-md shadow-lime-400/80 animate-pulse" title="Serving"></span>
-                )}
-                <span className="tracking-wide">{state.player2.name}</span>
-                {state.player2.seed && (
-                  <span className="text-[10px] font-bold text-broadcast-subtle bg-broadcast-card px-1.5 py-0.2 rounded border border-broadcast-border">
-                    #{state.player2.seed}
-                  </span>
-                )}
-              </td>
-              {state.setScores.map((score, i) => {
-                const p2Score = score.split('-')[1];
-                return (
-                  <td key={i} className="py-3 text-center font-mono-numbers text-broadcast-muted text-base">
-                    {p2Score}
-                  </td>
-                );
-              })}
-              <td className="py-3 text-center font-mono-numbers font-black text-broadcast-orange text-lg bg-broadcast-orange/15 rounded-lg">
-                {state.gameScore === 'FINAL' ? 'RU' : state.gameScore.split('-')[1]}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
-
-function F1Board({ state }: { state: F1State }) {
-  const getStatusBadge = () => {
-    switch (state.status) {
-      case 'SAFETY_CAR':
-        return (
-          <span className="px-3.5 py-1.5 bg-amber-500/20 text-amber-300 border border-amber-500/50 rounded-xl text-xs font-black animate-pulse flex items-center gap-2 shadow-lg shadow-amber-500/20">
-            <Flame className="w-4 h-4" />
-            SAFETY CAR DEPLOYED
-          </span>
-        );
-      case 'RED_FLAG':
-        return (
-          <span className="px-3.5 py-1.5 bg-red-500/20 text-red-400 border border-red-500/50 rounded-xl text-xs font-black flex items-center gap-2">
-            <Flag className="w-4 h-4" />
-            SESSION SUSPENDED
-          </span>
-        );
-      default:
-        return (
-          <span className="px-3.5 py-1.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 rounded-xl text-xs font-bold flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-            TRACK GREEN
-          </span>
-        );
-    }
-  };
-
-  const getTyreBadge = (compound: string) => {
-    switch (compound) {
-      case 'SOFT':
-        return <span className="px-2 py-0.5 rounded-md bg-red-600 text-white font-extrabold text-[10px] shadow-sm">SOFT</span>;
-      case 'MEDIUM':
-        return <span className="px-2 py-0.5 rounded-md bg-amber-500 text-black font-extrabold text-[10px] shadow-sm">MED</span>;
-      default:
-        return <span className="px-2 py-0.5 rounded-md bg-zinc-200 text-black font-extrabold text-[10px] shadow-sm">HARD</span>;
-    }
-  };
-
-  return (
-    <div className="broadcast-glass-card rounded-2xl p-5 border border-broadcast-border shadow-xl">
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-4 pb-3 border-b border-broadcast-border/60">
-        <div>
-          <span className="text-[11px] font-extrabold uppercase tracking-widest text-broadcast-orange">
-            YAS MARINA · LAP {state.lap} OF {state.totalLaps}
-          </span>
-          <h3 className="text-xl font-black text-white tracking-tight mt-0.5">
-            World Drivers' Championship Decider
-          </h3>
-        </div>
-        <div>{getStatusBadge()}</div>
-      </div>
-
-      <div className="overflow-x-auto">
-        <table className="w-full text-left">
-          <thead>
-            <tr className="text-xs text-broadcast-subtle border-b border-broadcast-border/40">
-              <th className="pb-2.5 font-bold w-12">POS</th>
-              <th className="pb-2.5 font-bold">DRIVER</th>
-              <th className="pb-2.5 font-bold">TEAM</th>
-              <th className="pb-2.5 text-center font-bold w-20">TYRE</th>
-              <th className="pb-2.5 text-right font-bold">GAP / INTERVAL</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-broadcast-border/30">
-            {state.standings.map((d) => (
-              <tr key={d.code} className="text-sm font-bold text-white">
-                <td className="py-2.5 font-mono-numbers text-broadcast-muted">{d.pos}</td>
-                <td className="py-2.5 flex items-center gap-2.5">
-                  <span className="font-black text-broadcast-orange text-base">{d.code}</span>
-                  <span className="text-xs font-semibold text-zinc-300">{d.driver}</span>
-                </td>
-                <td className="py-2.5 text-xs text-broadcast-muted font-medium">{d.team}</td>
-                <td className="py-2.5 text-center">{getTyreBadge(d.tyre)}</td>
-                <td className="py-2.5 text-right font-mono-numbers text-xs font-black text-white">
-                  {d.gap}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
-
-function CricketBoard({ state }: { state: CricketState }) {
-  const runsNeeded = state.target ? state.target - state.score : 0;
-  const totalBalls = Math.floor(state.overs) * 6 + Math.round((state.overs % 1) * 10);
-  const ballsRemaining = Math.max(0, 120 - totalBalls);
-
-  return (
-    <div className="broadcast-glass-card rounded-2xl p-5 border border-broadcast-border shadow-xl">
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-4 pb-3 border-b border-broadcast-border/60">
-        <div>
-          <span className="text-[11px] font-extrabold uppercase tracking-widest text-broadcast-orange">
-            ICC T20 WORLD CUP FINAL · 2ND INNINGS
-          </span>
-          <div className="flex items-baseline gap-3 mt-1">
-            <h3 className="text-3xl font-black text-white tracking-tight">
-              {state.battingTeam} <span className="text-broadcast-orange">{state.score}/{state.wickets}</span>
-            </h3>
-            <span className="font-mono-numbers text-base text-broadcast-muted font-extrabold">
-              ({state.overs} ov)
-            </span>
-          </div>
-        </div>
-
-        {runsNeeded > 0 ? (
-          <div className="bg-broadcast-orange/15 border border-broadcast-orange/30 px-4 py-2 rounded-xl text-right shadow-md">
-            <div className="text-[11px] text-broadcast-muted font-bold tracking-wider uppercase">
-              TARGET: {state.target}
-            </div>
-            <div className="text-sm font-black text-broadcast-orange">
-              Need {runsNeeded} runs off {ballsRemaining} balls
-            </div>
-            <div className="text-[10px] text-broadcast-subtle font-mono-numbers mt-0.5">
-              Req RR: {state.requiredRunRate?.toFixed(2) || '—'} · Curr RR: {state.currentRunRate.toFixed(2)}
-            </div>
-          </div>
-        ) : (
-          <div className="bg-emerald-500/20 border border-emerald-500/40 px-4 py-2 rounded-xl text-emerald-300 font-black text-sm">
-            🏆 MATCH CONCLUDED
-          </div>
-        )}
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Batting Pair */}
-        <div className="bg-broadcast-canvas/80 p-3.5 rounded-xl border border-broadcast-border/60">
-          <div className="text-[11px] font-bold text-broadcast-subtle uppercase tracking-wider mb-2">Batting</div>
-          {state.currentBatters.map((b, idx) => (
-            <div key={b.name} className="flex justify-between items-center text-xs py-1">
-              <span className={`font-bold ${idx === 0 ? 'text-white' : 'text-broadcast-muted'}`}>
-                {b.name} {idx === 0 ? '*' : ''}
+            {/* Timecode */}
+            <div className="flex items-center gap-1.5 text-[11px] font-mono-numbers text-zinc-300">
+              <span className="w-2 h-2 rounded-full bg-red-500"></span>
+              <span className="font-bold text-white uppercase text-[10px] tracking-wider">LIVE</span>
+              <span className="text-zinc-500">·</span>
+              <span>
+                {Math.floor(currentTime / 60)}:{String(Math.floor(currentTime % 60)).padStart(2, '0')}
               </span>
-              <span className="font-mono-numbers font-black text-white">
-                {b.runs} <span className="text-broadcast-subtle font-normal">({b.balls})</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 sm:gap-3 text-xs text-zinc-300">
+            <span className="px-1.5 py-0.5 rounded bg-white/10 text-[10px] font-mono-numbers font-bold text-emerald-400">
+              1080p · 60fps
+            </span>
+            <div className="hidden sm:flex items-center gap-1 text-[11px] text-zinc-400">
+              <Radio className="w-3 h-3 text-broadcast-orange animate-pulse" />
+              <span>Synced PTS</span>
+            </div>
+          </div>
+        </div>
+
+        {/* In-Player HUD Popover Overlay */}
+        <InPlayerHUD />
+      </div>
+
+      {/* FanCode Native AI Card Slot (Upgraded Below-Player Experience - FanCode Screenshot 2) */}
+      <div className="broadcast-glass rounded-2xl p-4 sm:p-5 border border-white/10 shadow-xl relative overflow-hidden">
+        <div className="flex items-start justify-between gap-4 mb-2">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 rounded-lg bg-broadcast-orange/20 text-broadcast-orange border border-broadcast-orange/30">
+              <Sparkles className="w-4 h-4 fill-current" />
+            </div>
+            <div>
+              <span className="text-[11px] text-zinc-400 font-medium">
+                Last Updated just now · Powered by Cutaway AI Sentinel
               </span>
+              <h3 className="text-sm font-extrabold text-white">
+                Live Multi-Court Intelligence & Cross-Stream Cues
+              </h3>
+            </div>
+          </div>
+
+          <button
+            onClick={() => setIsInPlayerHUDOpen(!isInPlayerHUDOpen)}
+            className="text-[11px] font-bold text-broadcast-orange hover:underline shrink-0"
+          >
+            Customize Cues →
+          </button>
+        </div>
+
+        <p className="text-xs text-zinc-300 leading-relaxed mb-3">
+          Cutaway monitors concurrent live events in the background without burning user bandwidth.
+          When high-leverage moments trigger on other streams, alerts appear directly on your video
+          canvas.
+        </p>
+
+        {/* Mini Sentinel Status Strip Across Concurrent Matches */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2 border-t border-white/5">
+          {concurrentAlerts.map(({ match, event }) => (
+            <div
+              key={match.id}
+              onClick={() => switchMatch(match.id)}
+              className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 cursor-pointer transition-all flex items-center justify-between group"
+            >
+              <div className="flex items-center gap-2 truncate">
+                <span className="text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-white/10 text-broadcast-muted">
+                  {match.sport}
+                </span>
+                <span className="text-xs font-bold text-white group-hover:text-broadcast-orange truncate">
+                  {match.title}
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                <span className="text-[10px] text-zinc-400">
+                  {event ? event.headline.slice(0, 24) + '...' : 'Live'}
+                </span>
+                <ChevronRight className="w-3.5 h-3.5 text-zinc-500 group-hover:text-broadcast-orange transition-transform group-hover:translate-x-0.5" />
+              </div>
             </div>
           ))}
         </div>
+      </div>
+    </div>
+  );
+}
 
-        {/* Current Bowler & Over balls */}
-        <div className="bg-broadcast-canvas/80 p-3.5 rounded-xl border border-broadcast-border/60">
-          <div className="text-[11px] font-bold text-broadcast-subtle uppercase tracking-wider mb-2">Bowling</div>
-          <div className="flex justify-between items-center text-xs py-1">
-            <span className="font-bold text-white">{state.currentBowler.name}</span>
-            <span className="font-mono-numbers font-black text-broadcast-orange">{state.currentBowler.figures}</span>
+/* ================= Mini Broadcast Lower-Third HUD Overlays ================= */
+
+function TennisBroadcastHUD({ state }: { state: TennisState }) {
+  return (
+    <div className="bg-black/75 backdrop-blur-xl rounded-xl p-3 border border-white/15 text-white shadow-2xl flex flex-col gap-2">
+      <div className="flex items-center justify-between text-[11px] font-extrabold tracking-wider border-b border-white/10 pb-1.5">
+        <span className="text-lime-400 uppercase">ROD LAVER ARENA · SET 5</span>
+        {state.isBreakPoint && (
+          <span className="px-2 py-0.5 rounded bg-red-600/80 text-white text-[10px] font-black animate-pulse flex items-center gap-1">
+            <ShieldAlert className="w-3 h-3" /> BREAK POINT
+          </span>
+        )}
+      </div>
+      <div className="space-y-1">
+        <div className="flex justify-between items-center text-xs font-bold">
+          <div className="flex items-center gap-2">
+            {state.server === 1 && <span className="w-2 h-2 rounded-full bg-lime-400 animate-pulse"></span>}
+            <span>{state.player1.name}</span>
           </div>
-
-          {state.lastOverSummary && state.lastOverSummary.length > 0 && (
-            <div className="mt-2.5 pt-2 border-t border-broadcast-border/40 flex items-center gap-1.5">
-              <span className="text-[10px] text-broadcast-subtle font-semibold mr-1">Over:</span>
-              {state.lastOverSummary.map((ball, i) => (
-                <span
-                  key={i}
-                  className={`w-6 h-6 rounded-full flex items-center justify-center font-mono-numbers text-[10px] font-black ${
-                    ball === 'W'
-                      ? 'bg-red-600 text-white shadow-md shadow-red-600/40'
-                      : ball === '4' || ball === '6'
-                      ? 'bg-broadcast-orange text-white shadow-md shadow-broadcast-orange/40'
-                      : 'bg-broadcast-card text-broadcast-muted border border-broadcast-border'
-                  }`}
-                >
-                  {ball}
-                </span>
-              ))}
-            </div>
-          )}
+          <div className="flex items-center gap-3 font-mono-numbers">
+            {state.setScores.map((s, i) => (
+              <span key={i} className="text-zinc-400">{s.split('-')[0]}</span>
+            ))}
+            <span className="text-broadcast-orange font-black text-sm bg-white/10 px-1.5 rounded">
+              {state.gameScore.split('-')[0]}
+            </span>
+          </div>
         </div>
+        <div className="flex justify-between items-center text-xs font-bold">
+          <div className="flex items-center gap-2">
+            {state.server === 2 && <span className="w-2 h-2 rounded-full bg-lime-400 animate-pulse"></span>}
+            <span>{state.player2.name}</span>
+          </div>
+          <div className="flex items-center gap-3 font-mono-numbers">
+            {state.setScores.map((s, i) => (
+              <span key={i} className="text-zinc-400">{s.split('-')[1]}</span>
+            ))}
+            <span className="text-broadcast-orange font-black text-sm bg-white/10 px-1.5 rounded">
+              {state.gameScore.split('-')[1]}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function F1BroadcastHUD({ state }: { state: F1State }) {
+  const leader = state.standings[0];
+  const second = state.standings[1];
+  return (
+    <div className="bg-black/75 backdrop-blur-xl rounded-xl p-3 border border-white/15 text-white shadow-2xl flex flex-col gap-2">
+      <div className="flex items-center justify-between text-[11px] font-extrabold tracking-wider border-b border-white/10 pb-1.5">
+        <span className="text-red-400 uppercase">YAS MARINA · LAP {state.lap}/{state.totalLaps}</span>
+        {state.status === 'SAFETY_CAR' && (
+          <span className="px-2 py-0.5 rounded bg-amber-500/80 text-black text-[10px] font-black animate-pulse flex items-center gap-1">
+            <Flame className="w-3 h-3" /> SAFETY CAR
+          </span>
+        )}
+      </div>
+      <div className="flex justify-between items-center text-xs font-mono-numbers">
+        <div>
+          <span className="font-black text-broadcast-orange mr-1">P1 {leader?.code}</span>
+          <span className="text-zinc-400 text-[11px]">{leader?.gap}</span>
+        </div>
+        <div>
+          <span className="font-bold text-white mr-1">P2 {second?.code}</span>
+          <span className="text-red-400 text-[11px]">{second?.gap}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CricketBroadcastHUD({ state }: { state: CricketState }) {
+  const runsNeeded = state.target ? state.target - state.score : 0;
+  const totalBalls = Math.floor(state.overs) * 6 + Math.round((state.overs % 1) * 10);
+  const ballsRemaining = Math.max(0, 120 - totalBalls);
+  return (
+    <div className="bg-black/75 backdrop-blur-xl rounded-xl p-3 border border-white/15 text-white shadow-2xl flex flex-col gap-2">
+      <div className="flex items-center justify-between text-[11px] font-extrabold tracking-wider border-b border-white/10 pb-1.5">
+        <span className="text-broadcast-orange uppercase">T20 FINAL · 2ND INNINGS</span>
+        <span className="text-zinc-300 font-mono-numbers">CRR: {state.currentRunRate.toFixed(1)}</span>
+      </div>
+      <div className="flex items-baseline justify-between">
+        <div>
+          <span className="text-lg font-black text-white mr-2">{state.battingTeam}</span>
+          <span className="text-xl font-black text-broadcast-orange font-mono-numbers">
+            {state.score}/{state.wickets}
+          </span>
+          <span className="text-xs text-zinc-400 ml-1.5 font-mono-numbers">({state.overs} ov)</span>
+        </div>
+        {runsNeeded > 0 && (
+          <div className="text-right text-[11px] font-bold text-amber-300">
+            Need {runsNeeded} off {ballsRemaining}b
+          </div>
+        )}
       </div>
     </div>
   );

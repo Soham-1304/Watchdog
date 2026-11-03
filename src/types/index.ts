@@ -118,6 +118,10 @@ export interface CatchUpSummary {
 }
 
 export interface UserSettings {
+  enabled: boolean; // In-player quick AI toggle (like CC)
+  contentDepth: 'concise' | 'tactical' | 'stat_heavy'; // Concise headline vs tactical why vs stats
+  audienceMode: 'novice' | 'pro'; // Novice mode with jargon translator vs veteran fan mode
+  alertStyle: 'card' | 'pill' | 'glow_only';
   pins: {
     sports: SportType[];
     players: string[];

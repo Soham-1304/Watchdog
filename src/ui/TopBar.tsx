@@ -1,11 +1,10 @@
 import { motion } from 'framer-motion';
-import { Sparkles, Settings, Sun, Moon } from 'lucide-react';
+import { Settings, Sun, Moon } from 'lucide-react';
 import { useReplayStore } from '../store/useReplayStore';
 
 export function TopBar() {
   const currentPage = useReplayStore((s) => s.currentPage);
   const setCurrentPage = useReplayStore((s) => s.setCurrentPage);
-  const quickWatchList = useReplayStore((s) => s.quickWatchList);
   const activeMatchId = useReplayStore((s) => s.activeMatchId);
   const switchMatch = useReplayStore((s) => s.switchMatch);
   const matches = useReplayStore((s) => s.matches);
@@ -117,7 +116,7 @@ export function TopBar() {
           </nav>
         </div>
 
-        {/* Right: Theme Toggle, QuickWatch Pill & Settings */}
+        {/* Right: Theme Toggle & Settings */}
         <div className="flex items-center gap-2 sm:gap-2.5">
           {/* Light / Dark Mode Toggle */}
           <button
@@ -128,19 +127,6 @@ export function TopBar() {
             {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-700" />}
           </button>
 
-          {/* QuickWatch Pill */}
-          <button
-            onClick={() => setCurrentPage('settings')}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-xs font-bold text-slate-700 dark:text-zinc-300 transition-all shadow-sm"
-            title="QuickWatch Feeds"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-broadcast-orange fill-current" />
-            <span className="hidden sm:inline">QuickWatch</span>
-            <span className="px-1.5 py-0.2 rounded-full bg-broadcast-orange/20 text-broadcast-orange font-mono-numbers text-[10px]">
-              {quickWatchList.length}
-            </span>
-          </button>
-
           {/* Settings Button */}
           <button
             onClick={() => setCurrentPage('settings')}
@@ -149,7 +135,7 @@ export function TopBar() {
                 ? 'bg-broadcast-orange text-white shadow-lg shadow-broadcast-orange/30'
                 : 'bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-zinc-300 border border-slate-200 dark:border-white/10'
             }`}
-            title="Settings & Preferences"
+            title="Settings"
           >
             <Settings className="w-4 h-4" />
           </button>

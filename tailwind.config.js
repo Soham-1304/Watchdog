@@ -7,33 +7,47 @@ export default {
   theme: {
     extend: {
       colors: {
-        fancode: {
-          bg: '#0F0F11',
-          surface: '#18181B',
-          card: '#222226',
-          border: '#2E2E33',
-          hover: '#2A2A30',
-          orange: '#FF5B00',
-          orangeLight: '#FF7A29',
-          orangeMuted: 'rgba(255, 91, 0, 0.15)',
-          text: '#F4F4F5',
-          muted: '#A1A1AA',
-          subtle: '#71717A',
+        broadcast: {
+          canvas: '#090A0C',
+          surface: '#111317',
+          card: '#181A20',
+          cardHover: '#1F222A',
+          border: '#262933',
+          borderLight: '#323644',
+          orange: '#FF5200',
+          orangeHover: '#FF6A22',
+          orangeGlow: 'rgba(255, 82, 0, 0.25)',
+          amber: '#F59E0B',
+          red: '#EF4444',
+          green: '#10B981',
+          blue: '#3B82F6',
+          text: '#F4F4F6',
+          muted: '#9CA3AF',
+          subtle: '#6B7280',
         }
       },
+      fontFamily: {
+        sans: ['Plus Jakarta Sans', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace'],
+      },
       keyframes: {
-        pulseGlow: {
-          '0%, 100%': { borderColor: '#FF5B00', boxShadow: '0 0 15px rgba(255, 91, 0, 0.5)' },
-          '50%': { borderColor: '#2E2E33', boxShadow: 'none' }
+        broadcastPulse: {
+          '0%, 100%': { borderColor: '#FF5200', boxShadow: '0 0 20px rgba(255, 82, 0, 0.45)' },
+          '50%': { borderColor: '#262933', boxShadow: 'none' }
         },
         slideInRight: {
           '0%': { transform: 'translateX(100%)', opacity: '0' },
           '100%': { transform: 'translateX(0)', opacity: '1' }
+        },
+        tickerSlide: {
+          '0%': { opacity: '0', transform: 'translateY(6px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' }
         }
       },
       animation: {
-        'pulse-glow': 'pulseGlow 1.5s infinite',
-        'slide-in-right': 'slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+        'broadcast-pulse': 'broadcastPulse 1.8s infinite cubic-bezier(0.4, 0, 0.6, 1)',
+        'slide-in-right': 'slideInRight 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+        'ticker-slide': 'tickerSlide 0.25s ease-out'
       }
     },
   },

@@ -24,67 +24,67 @@ export function FilteredViewDrawer() {
   });
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden bg-black/60 backdrop-blur-sm flex justify-end animate-fadeIn">
-      <div className="w-full max-w-xl bg-fancode-surface h-full border-l border-fancode-border flex flex-col shadow-2xl animate-slide-in-right">
+    <div className="fixed inset-0 z-50 overflow-hidden bg-black/70 backdrop-blur-md flex justify-end animate-ticker-slide">
+      <div className="w-full max-w-xl bg-broadcast-surface h-full border-l border-broadcast-border flex flex-col shadow-2xl animate-slide-in-right">
         {/* Header */}
-        <div className="p-5 border-b border-fancode-border flex items-center justify-between bg-fancode-card/80">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-lg bg-fancode-orange/15 text-fancode-orange border border-fancode-orange/30">
+        <div className="p-5 border-b border-broadcast-border flex items-center justify-between bg-broadcast-card/90">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-broadcast-orange/15 text-broadcast-orange border border-broadcast-orange/30 shadow-md">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-extrabold text-white">Proof of Restraint</h3>
-              <p className="text-xs text-fancode-muted">
-                What Cutaway filtered out to protect your viewing stream
+              <h3 className="text-lg font-black text-white">Proof of Restraint</h3>
+              <p className="text-xs text-broadcast-muted">
+                Audit trail of events filtered out to protect viewing immersion
               </p>
             </div>
           </div>
           <button
             onClick={() => setOpen(false)}
-            className="p-1.5 text-fancode-subtle hover:text-white rounded-lg hover:bg-fancode-hover transition-colors"
+            className="p-1.5 text-broadcast-subtle hover:text-white rounded-lg hover:bg-broadcast-cardHover transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Anti-Bloat Stat Cards */}
-        <div className="grid grid-cols-3 gap-3 p-5 border-b border-fancode-border bg-fancode-bg/50">
-          <div className="bg-fancode-card p-3 rounded-xl border border-fancode-border text-center">
-            <span className="text-[11px] text-fancode-subtle uppercase font-semibold">Evaluated</span>
-            <div className="text-xl font-black font-mono-numbers text-white mt-0.5">
+        <div className="grid grid-cols-3 gap-3 p-5 border-b border-broadcast-border bg-broadcast-canvas/60">
+          <div className="bg-broadcast-card p-3.5 rounded-2xl border border-broadcast-border text-center shadow-sm">
+            <span className="text-[11px] text-broadcast-subtle uppercase font-bold tracking-wider">Evaluated</span>
+            <div className="text-2xl font-black font-mono-numbers text-white mt-1">
               {totalEvaluated}
             </div>
           </div>
-          <div className="bg-fancode-card p-3 rounded-xl border border-fancode-border text-center">
-            <span className="text-[11px] text-fancode-orange uppercase font-semibold">Alerts Fired</span>
-            <div className="text-xl font-black font-mono-numbers text-fancode-orange mt-0.5">
+          <div className="bg-broadcast-card p-3.5 rounded-2xl border border-broadcast-border text-center shadow-sm">
+            <span className="text-[11px] text-broadcast-orange uppercase font-bold tracking-wider">Alerts Fired</span>
+            <div className="text-2xl font-black font-mono-numbers text-broadcast-orange mt-1">
               {totalAlerts}
             </div>
           </div>
-          <div className="bg-fancode-card p-3 rounded-xl border border-fancode-border text-center">
-            <span className="text-[11px] text-emerald-400 uppercase font-semibold">Filtered Rate</span>
-            <div className="text-xl font-black font-mono-numbers text-emerald-400 mt-0.5">
+          <div className="bg-broadcast-card p-3.5 rounded-2xl border border-broadcast-border text-center shadow-sm">
+            <span className="text-[11px] text-emerald-400 uppercase font-bold tracking-wider">Restraint Rate</span>
+            <div className="text-2xl font-black font-mono-numbers text-emerald-400 mt-1">
               {suppressionRate}%
             </div>
           </div>
         </div>
 
         {/* Philosophy Note */}
-        <div className="px-5 py-3 bg-amber-500/10 border-b border-amber-500/20 text-xs text-amber-200/90 flex items-start gap-2">
+        <div className="px-5 py-3.5 bg-amber-500/10 border-b border-amber-500/20 text-xs text-amber-200/90 flex items-start gap-2.5">
           <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
           <span>
-            <strong>Design Principle:</strong> Existing apps spam on every boundary or lap. Cutaway’s two-stage gate holds back ~85%+ of events, firing only on decisive swings (threshold &ge; {threshold}).
+            <strong>FDE Design Principle:</strong> Existing apps spam on every boundary, lap, or routine point. Cutaway’s two-stage gate holds back 70–85%+ of events, firing only on decisive swings (threshold &ge; {threshold}).
           </span>
         </div>
 
         {/* Filter Tabs */}
-        <div className="flex border-b border-fancode-border px-5 pt-3 gap-2 bg-fancode-surface text-xs font-semibold">
+        <div className="flex border-b border-broadcast-border px-5 pt-3 gap-2 bg-broadcast-surface text-xs font-bold">
           <button
             onClick={() => setActiveTab('all')}
             className={`pb-2.5 px-3 border-b-2 transition-colors ${
               activeTab === 'all'
-                ? 'border-fancode-orange text-white'
-                : 'border-transparent text-fancode-muted hover:text-white'
+                ? 'border-broadcast-orange text-white'
+                : 'border-transparent text-broadcast-muted hover:text-white'
             }`}
           >
             All Suppressed ({suppressedCount})
@@ -93,8 +93,8 @@ export function FilteredViewDrawer() {
             onClick={() => setActiveTab('rules_gate')}
             className={`pb-2.5 px-3 border-b-2 transition-colors ${
               activeTab === 'rules_gate'
-                ? 'border-fancode-orange text-white'
-                : 'border-transparent text-fancode-muted hover:text-white'
+                ? 'border-broadcast-orange text-white'
+                : 'border-transparent text-broadcast-muted hover:text-white'
             }`}
           >
             Stage 1: Rules Gate
@@ -103,8 +103,8 @@ export function FilteredViewDrawer() {
             onClick={() => setActiveTab('below_threshold')}
             className={`pb-2.5 px-3 border-b-2 transition-colors ${
               activeTab === 'below_threshold'
-                ? 'border-fancode-orange text-white'
-                : 'border-transparent text-fancode-muted hover:text-white'
+                ? 'border-broadcast-orange text-white'
+                : 'border-transparent text-broadcast-muted hover:text-white'
             }`}
           >
             Stage 2: Below Threshold
@@ -114,41 +114,41 @@ export function FilteredViewDrawer() {
         {/* Suppressed Events List */}
         <div className="flex-1 overflow-y-auto p-5 space-y-2.5">
           {filteredList.length === 0 ? (
-            <div className="text-center py-12 text-fancode-subtle text-sm">
+            <div className="text-center py-16 text-broadcast-subtle text-sm">
               <Filter className="w-8 h-8 mx-auto mb-2 opacity-40" />
-              No suppressed events recorded yet. Play the replay to see events pass through the gate!
+              No suppressed events recorded yet. Run the replay to see events pass through the gate!
             </div>
           ) : (
             filteredList.map((item, idx) => (
               <div
                 key={`${item.event.id}-${idx}`}
-                className="bg-fancode-card/80 p-3.5 rounded-xl border border-fancode-border/70 flex items-start justify-between gap-3 text-xs"
+                className="bg-broadcast-card/85 p-3.5 rounded-2xl border border-broadcast-border/80 flex items-start justify-between gap-3 text-xs shadow-sm hover:border-broadcast-borderLight transition-all"
               >
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-bold uppercase text-fancode-orange bg-fancode-orange/10 px-1.5 py-0.2 rounded border border-fancode-orange/20">
+                    <span className="text-[10px] font-black uppercase text-broadcast-orange bg-broadcast-orange/10 px-2 py-0.5 rounded border border-broadcast-orange/20">
                       {item.event.sport}
                     </span>
-                    <span className="font-mono-numbers text-[10px] text-fancode-subtle">
+                    <span className="font-mono-numbers text-[11px] font-bold text-broadcast-subtle">
                       t={Math.floor(item.event.t)}s
                     </span>
-                    <span className="text-[10px] text-fancode-muted bg-fancode-surface px-1.5 py-0.2 rounded border border-fancode-border">
+                    <span className="text-[10px] font-semibold text-broadcast-muted bg-broadcast-canvas px-2 py-0.5 rounded border border-broadcast-border">
                       {item.event.type}
                     </span>
                   </div>
-                  <p className="font-medium text-white">{item.event.headline}</p>
-                  <p className="text-[11px] text-fancode-subtle flex items-center gap-1">
-                    <ChevronRight className="w-3 h-3 text-fancode-muted" />
-                    <span>Suppressed: {item.details || item.reason}</span>
+                  <p className="font-bold text-white text-xs">{item.event.headline}</p>
+                  <p className="text-[11px] text-broadcast-subtle flex items-center gap-1 font-medium">
+                    <ChevronRight className="w-3 h-3 text-broadcast-muted" />
+                    <span>Reason: {item.details || item.reason}</span>
                   </p>
                 </div>
 
                 {item.score !== undefined ? (
-                  <span className="font-mono-numbers font-black px-2 py-1 rounded bg-zinc-800 text-zinc-300 border border-zinc-700 text-xs shrink-0">
+                  <span className="font-mono-numbers font-black px-2.5 py-1 rounded-xl bg-zinc-800 text-zinc-200 border border-zinc-700 text-xs shrink-0">
                     {item.score}/10
                   </span>
                 ) : (
-                  <span className="font-mono-numbers text-[10px] px-2 py-0.5 rounded bg-zinc-900 text-zinc-500 border border-zinc-800 shrink-0">
+                  <span className="font-mono-numbers text-[10px] font-bold px-2.5 py-1 rounded-xl bg-zinc-900 text-zinc-500 border border-zinc-800 shrink-0">
                     Gate Cut
                   </span>
                 )}

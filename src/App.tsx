@@ -64,18 +64,18 @@ export default function App() {
 
   if (!isLoaded) {
     return (
-      <div className="min-h-screen bg-fancode-bg flex flex-col items-center justify-center text-white p-6">
-        <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-fancode-orange to-fancode-orangeLight flex items-center justify-center text-white font-black text-2xl shadow-xl shadow-fancode-orange/30 animate-pulse mb-4">
+      <div className="min-h-screen bg-broadcast-canvas flex flex-col items-center justify-center text-white p-6">
+        <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-broadcast-orange to-broadcast-amber flex items-center justify-center text-white font-black text-2xl shadow-2xl shadow-broadcast-orange/40 animate-pulse mb-4 ring-1 ring-white/20">
           C
         </div>
-        <h2 className="text-xl font-bold tracking-tight">Initializing Cutaway Replay Engine...</h2>
-        <p className="text-xs text-fancode-muted mt-2">Loading multi-sport recorded streams</p>
+        <h2 className="text-xl font-black tracking-tight">Initializing Cutaway Engine...</h2>
+        <p className="text-xs text-broadcast-muted mt-1.5 font-medium">Synchronizing live multi-sport broadcast streams</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-fancode-bg text-fancode-text flex flex-col justify-between selection:bg-fancode-orange selection:text-white">
+    <div className="min-h-screen bg-broadcast-canvas text-broadcast-text flex flex-col justify-between selection:bg-broadcast-orange selection:text-white">
       {/* Top Application Bar */}
       <TopBar />
 
@@ -104,13 +104,13 @@ export default function App() {
       <GuidedDemoTour />
 
       {/* Footer & Data Attribution */}
-      <footer className="border-t border-fancode-border/60 py-4 px-6 text-center text-xs text-fancode-subtle bg-fancode-surface/40 mt-8">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p>
-            <strong className="text-fancode-muted">Cutaway</strong> · Non-commercial prototype developed for Dream Sports / FanCode FDE Evaluation.
+      <footer className="border-t border-broadcast-border/60 py-5 px-6 text-center text-xs text-broadcast-subtle bg-broadcast-surface/40 mt-10">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+          <p className="font-medium">
+            <strong className="text-broadcast-muted font-bold">Cutaway</strong> · Scalable AI Companion built for Dream Sports / FanCode FDE Evaluation.
           </p>
-          <p className="text-[11px]">
-            Data Credits: Cricsheet (T20 WC) · FastF1 / OpenF1 (Abu Dhabi GP) · Jeff Sackmann (Grand Slam Tennis).
+          <p className="text-[11px] font-mono-numbers">
+            Telemetry: Cricsheet (T20 WC) · FastF1 (Abu Dhabi GP) · Jeff Sackmann (Grand Slam Tennis).
           </p>
         </div>
       </footer>

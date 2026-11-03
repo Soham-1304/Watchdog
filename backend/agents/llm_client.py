@@ -15,14 +15,14 @@ load_dotenv()
 T = TypeVar("T", bound=BaseModel)
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
+GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent"
 
 async def call_structured_agent(
     system_instruction: str,
     prompt: str,
     response_schema: Type[T],
     fallback_data: Optional[dict[str, Any]] = None,
-    timeout_seconds: float = 4.0
+    timeout_seconds: float = 12.0
 ) -> T:
     """
     Invokes Gemini with strict JSON schema compliance and validates with Pydantic.
@@ -43,7 +43,8 @@ async def call_structured_agent(
         ],
         "generationConfig": {
             "temperature": 0.1,
-            "responseMimeType": "application/json"
+            "responseMimeType": "application/json",
+            "responseSchema": response_schema.model_json_schema()
         }
     }
 

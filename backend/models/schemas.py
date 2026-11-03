@@ -109,7 +109,7 @@ class SignificanceOutput(BaseModel):
     event_id: str
     importance_score: int = Field(ge=1, le=10, description="1-10 significance rating")
     leverage_category: Literal["routine", "notable", "major_swing", "championship_decider"]
-    state_delta_summary: str = Field(max_length=100, description="Factual change in game equation")
+    state_delta_summary: str = Field(max_length=150, description="Factual change in game equation")
     confidence: float = Field(ge=0.0, le=1.0, default=1.0)
 
 
@@ -117,8 +117,8 @@ class NarrativeOutput(BaseModel):
     """Output from Agent 2: Broadcast Color Analyst (The 'Why')"""
     model_config = ConfigDict(extra="ignore")
     event_id: str
-    headline: str = Field(max_length=95, description="Clear, urgent broadcast alert line")
-    why_it_matters: str = Field(max_length=145, description="1-line strategic context")
+    headline: str = Field(max_length=120, description="Clear, urgent broadcast alert line")
+    why_it_matters: str = Field(max_length=180, description="1-line strategic context")
     primary_tags: list[str] = Field(min_length=1, max_length=5)
 
 
@@ -127,8 +127,8 @@ class NoviceOutput(BaseModel):
     model_config = ConfigDict(extra="ignore")
     event_id: str
     term_detected: str
-    plain_english_explanation: str = Field(max_length=130, description="Plain-English explanation")
-    relevance_to_moment: str = Field(max_length=100)
+    plain_english_explanation: str = Field(max_length=180, description="Plain-English explanation")
+    relevance_to_moment: str = Field(max_length=150)
 
 
 class CatchUpOutput(BaseModel):
@@ -137,7 +137,7 @@ class CatchUpOutput(BaseModel):
     match_id: str
     duration_absent_seconds: int = Field(ge=0)
     events_missed_count: int = Field(ge=0)
-    recap_narrative: str = Field(max_length=190, description="Strictly max 2 factual sentences")
+    recap_narrative: str = Field(max_length=250, description="Strictly max 2 factual sentences")
     current_game_equation: str = Field(max_length=100)
 
 

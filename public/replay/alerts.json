@@ -2,45 +2,53 @@
   "f1-001": {
     "event_id": "f1-001",
     "importance": 8,
-    "alert": "SAFETY CAR DEPLOYED! Latifi crashes heavily into Turn 14 barriers with 5 laps remaini",
-    "why": "Major momentum swing in contest at a crucial juncture of the contest.",
-    "novice_note": "Packs all cars together at a controlled slow speed, wiping out any built-up lead.",
+    "alert": "SAFETY CAR! Latifi crash at Turn 14 eliminates Hamilton's lead with 5 laps remaining.",
+    "why": "Hamilton's 11.8s lead over Verstappen is erased, forcing a bunched restart and a sprint to the finish for the final 5 laps.",
+    "novice_note": "A special car that leads the race to slow everyone down after an accident, making it safe for marshals to clear the track.",
     "tags": [
-      "f1",
-      "safety_car"
+      "Safety Car",
+      "F1",
+      "Race Restart",
+      "Championship Battle"
     ]
   },
   "f1-002": {
     "event_id": "f1-002",
-    "importance": 7,
-    "alert": "Red Bull boxes Verstappen for fresh Soft tyres! Hamilton stays out on 40-lap old Hard",
-    "why": "High leverage opportunity created at a crucial juncture of the contest.",
-    "novice_note": "Fresh tyres provide superior grip and speed, but pitting costs valuable track position.",
+    "importance": 9,
+    "alert": "Verstappen pits for fresh Softs under Safety Car! Hamilton gambles, stays out on old Hards",
+    "why": "This bold Red Bull strategy under the Safety Car negates Hamilton's lead, giving Verstappen a massive tyre advantage for the final 4 laps.",
+    "novice_note": "Soft tyres give more grip for speed but wear fast. Hard tyres last longer but are slower. Teams choose based on race strategy!",
     "tags": [
-      "f1",
-      "pit_stop"
+      "F1",
+      "Strategy",
+      "TyreDelta",
+      "SafetyCar"
     ]
   },
   "cric-001": {
     "event_id": "cric-001",
-    "importance": 7,
+    "importance": 5,
     "alert": "Klaasen punches Patel through covers for FOUR to reach 50 off 23 balls",
-    "why": "High leverage opportunity created at a crucial juncture of the contest.",
-    "novice_note": "Hitting the ball to the rope awards 4 runs without needing to physically run between wickets.",
+    "why": "Klaasen's rapid fifty off 24 balls, capped by this boundary, solidifies South Africa's dominant chase, needing just 26 runs from 29 balls.",
+    "novice_note": "When the batter hits the ball to the boundary rope, it automatically adds 4 runs to their score. Big points!",
     "tags": [
-      "cricket",
-      "boundary"
+      "Klaasen Fifty",
+      "Boundary",
+      "Run Chase",
+      "South Africa"
     ]
   },
   "cric-002": {
     "event_id": "cric-002",
     "importance": 8,
-    "alert": "WICKET! Klaasen c Pant b Pandya 52 (27). Slower wide cutter knicked behind!",
-    "why": "Major momentum swing in contest at a crucial juncture of the contest.",
+    "alert": "WICKET! Klaasen gone for 52! Pandya's slower ball gets the edge, huge breakthrough for Ind",
+    "why": "Klaasen's crucial 52-run knock ends, leaving South Africa needing 26 runs from 23 balls. This wicket massively swings the game in India's fa",
     "novice_note": "Losing a set batter in the closing overs puts immense pressure on incoming players.",
     "tags": [
-      "cricket",
-      "wicket"
+      "Wicket",
+      "Klaasen",
+      "Pandya",
+      "MomentumShift"
     ]
   },
   "ten-005": {

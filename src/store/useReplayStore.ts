@@ -93,7 +93,7 @@ export const useReplayStore = create<ReplayStoreState>((set, get) => ({
   alerts: {},
 
   currentTime: 0,
-  isPlaying: false,
+  isPlaying: true,
   speed: 1,
   maxTime: 360,
 
@@ -112,8 +112,8 @@ export const useReplayStore = create<ReplayStoreState>((set, get) => ({
     audienceMode: 'novice',
     alertStyle: 'card',
     pins: {
-      sports: ['tennis'],
-      players: ['Sinner'],
+      sports: ['tennis', 'f1', 'cricket'],
+      players: ['Sinner', 'Verstappen', 'Kohli'],
     },
     threshold: 7,
     delaySeconds: 0,
@@ -126,7 +126,7 @@ export const useReplayStore = create<ReplayStoreState>((set, get) => ({
   totalAlertsCount: 0,
 
   currentPage: 'home',
-  quickWatchList: ['match-cricket-t20', 'match-f1-abudhabi', 'match-tennis-ao24'],
+  quickWatchList: ['match-cricket-t20wc24', 'match-f1-abudhabi21', 'match-tennis-ao24'],
   settingsTab: 'cutaway',
   isFilteredDrawerOpen: false,
   isSettingsDrawerOpen: false,
@@ -154,6 +154,7 @@ export const useReplayStore = create<ReplayStoreState>((set, get) => ({
 
     set({
       isLoaded: true,
+      isPlaying: true,
       matches,
       events,
       alerts,

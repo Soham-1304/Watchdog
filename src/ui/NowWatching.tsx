@@ -35,7 +35,33 @@ export function NowWatching() {
 
   const [isMuted, setIsMuted] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isChromeVisible, setIsChromeVisible] = useState(true);
   const playerContainerRef = useRef<HTMLDivElement>(null);
+  const hideTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Auto-hide controls when user is not moving the cursor
+  const handleUserActivity = () => {
+    setIsChromeVisible(true);
+    if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    hideTimerRef.current = setTimeout(() => {
+      // Only auto-hide if in-player HUD is not open
+      if (!useReplayStore.getState().isInPlayerHUDOpen) {
+        setIsChromeVisible(false);
+      }
+    }, 2400);
+  };
+
+  const handleMouseLeave = () => {
+    if (!useReplayStore.getState().isInPlayerHUDOpen) {
+      setIsChromeVisible(false);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    };
+  }, []);
 
   // Monitor native browser fullscreen changes
   useEffect(() => {
@@ -108,15 +134,25 @@ export function NowWatching() {
       {/* 16:9 Broadcast Video Container */}
       <div
         ref={playerContainerRef}
+        onMouseMove={handleUserActivity}
+        onMouseEnter={handleUserActivity}
+        onMouseLeave={handleMouseLeave}
+        onTouchStart={handleUserActivity}
         className={`relative w-full rounded-2xl sm:rounded-3xl overflow-hidden bg-black border border-white/10 shadow-2xl transition-all group ${
           isFullscreen ? 'fixed inset-0 z-50 rounded-none border-none max-h-none h-screen' : 'aspect-video max-h-[580px]'
-        }`}
+        } ${!isChromeVisible && !isInPlayerHUDOpen ? 'cursor-none' : ''}`}
       >
         {/* Real Live Broadcast Stream (F1 Onboard, Tennis Court, Cricket Stream) */}
         <BroadcastCanvas />
 
-        {/* Top Overlay Bar */}
-        <div className="absolute top-0 inset-x-0 p-3 sm:p-5 flex items-center justify-between z-30 bg-gradient-to-b from-black/80 via-black/30 to-transparent">
+        {/* Top Overlay Bar - Fades out on inactivity */}
+        <div
+          className={`absolute top-0 inset-x-0 p-3 sm:p-5 flex items-center justify-between z-30 bg-gradient-to-b from-black/80 via-black/30 to-transparent transition-all duration-300 ${
+            isChromeVisible || isInPlayerHUDOpen
+              ? 'opacity-100 translate-y-0'
+              : 'opacity-0 -translate-y-2 pointer-events-none'
+          }`}
+        >
           {/* Match & Court Title */}
           <div className="flex items-center gap-2">
             <span className="text-xs sm:text-sm font-bold text-white tracking-wide flex items-center gap-1 drop-shadow">
@@ -132,13 +168,14 @@ export function NowWatching() {
             </span>
           </div>
 
-          {/* FanCode Watermark & Clean In-Player Controls */}
+          {/* Clean In-Player Controls */}
           <div className="flex items-center gap-2 sm:gap-2.5">
-            {/* FanCode Live Watermark */}
-            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-black/40 backdrop-blur-md border border-white/10 text-[10px] sm:text-xs font-black tracking-widest text-white">
-              <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping"></span>
-              <span>FANCODE</span>
-              <span className="text-red-500 font-bold">LIVE</span>
+            {/* Clean Live Simulation Badge (No redundant FanCode prefix) */}
+            <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-black/60 backdrop-blur-md border border-white/15 text-[10px] sm:text-xs font-bold tracking-wider text-white">
+              <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+              <span className="font-extrabold text-red-500 uppercase">LIVE</span>
+              <span className="text-zinc-600">·</span>
+              <span className="text-zinc-400 font-semibold text-[10px]">SIMULATION</span>
             </div>
 
             {/* In-Player ✦ AI Sparkle Button (Icon Only, Minimalist) */}
@@ -174,8 +211,14 @@ export function NowWatching() {
           </div>
         </div>
 
-        {/* Bottom Playback Overlay Strip */}
-        <div className="absolute bottom-0 inset-x-0 p-3 sm:p-4 flex items-center justify-between z-30 bg-gradient-to-t from-black/85 via-black/30 to-transparent">
+        {/* Bottom Playback Overlay Strip - Fades out on inactivity */}
+        <div
+          className={`absolute bottom-0 inset-x-0 p-3 sm:p-4 flex items-center justify-between z-30 bg-gradient-to-t from-black/85 via-black/30 to-transparent transition-all duration-300 ${
+            isChromeVisible || isInPlayerHUDOpen
+              ? 'opacity-100 translate-y-0'
+              : 'opacity-0 translate-y-2 pointer-events-none'
+          }`}
+        >
           <div className="flex items-center gap-3">
             {/* Play/Pause */}
             <button
@@ -196,7 +239,7 @@ export function NowWatching() {
             {/* Timecode */}
             <div className="flex items-center gap-1.5 text-xs font-mono-numbers text-zinc-300">
               <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-              <span className="font-bold text-white uppercase text-[10px] tracking-wider">LIVE</span>
+              <span className="font-bold text-white uppercase text-[10px] tracking-wider">LIVE SIM</span>
               <span className="text-zinc-600">·</span>
               <span>
                 {Math.floor(currentTime / 60)}:{String(Math.floor(currentTime % 60)).padStart(2, '0')}

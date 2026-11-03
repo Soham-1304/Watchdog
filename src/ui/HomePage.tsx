@@ -1,257 +1,237 @@
 import { useState } from 'react';
-import {
-  Play,
-  Plus,
-  Check,
-  ChevronLeft,
-  ChevronRight,
-  Sparkles,
-} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Play, ChevronLeft, ChevronRight, Sparkles, Activity } from 'lucide-react';
 import { useReplayStore } from '../store/useReplayStore';
-import { replayAdapter } from '../adapters/replayAdapter';
+import { SquishSwitch } from './SquishSwitch';
 
 export function HomePage() {
   const matches = useReplayStore((s) => s.matches);
-  const currentTime = useReplayStore((s) => s.currentTime);
   const switchMatch = useReplayStore((s) => s.switchMatch);
   const setCurrentPage = useReplayStore((s) => s.setCurrentPage);
   const quickWatchList = useReplayStore((s) => s.quickWatchList);
   const toggleQuickWatch = useReplayStore((s) => s.toggleQuickWatch);
 
-  const [activeHeroIdx, setActiveHeroIdx] = useState(0);
+  const [heroIdx, setHeroIdx] = useState(0);
 
-  const heroMatch = matches[activeHeroIdx] || matches[0];
+  const heroMatch = matches[heroIdx] || matches[0];
 
   const handleWatchLive = (matchId: string) => {
     switchMatch(matchId);
     setCurrentPage('match');
   };
 
-  const nextHero = () => {
-    setActiveHeroIdx((prev) => (prev + 1) % matches.length);
-  };
-
-  const prevHero = () => {
-    setActiveHeroIdx((prev) => (prev - 1 + matches.length) % matches.length);
-  };
+  const nextHero = () => setHeroIdx((prev) => (prev + 1) % matches.length);
+  const prevHero = () => setHeroIdx((prev) => (prev - 1 + matches.length) % matches.length);
 
   const isHeroInQuickWatch = heroMatch && quickWatchList.includes(heroMatch.id);
 
+  const sportTheme = (sport: string) => {
+    switch (sport) {
+      case 'tennis':
+        return {
+          accent: 'text-lime-400',
+          bg: 'from-emerald-950/40 via-zinc-950 to-black',
+          border: 'border-lime-500/20 hover:border-lime-400/50',
+          glow: 'rgba(163,230,53,0.15)',
+        };
+      case 'f1':
+        return {
+          accent: 'text-red-400',
+          bg: 'from-red-950/40 via-zinc-950 to-black',
+          border: 'border-red-500/20 hover:border-red-400/50',
+          glow: 'rgba(239,68,68,0.15)',
+        };
+      case 'cricket':
+      default:
+        return {
+          accent: 'text-broadcast-orange',
+          bg: 'from-orange-950/40 via-zinc-950 to-black',
+          border: 'border-orange-500/20 hover:border-orange-400/50',
+          glow: 'rgba(255,82,0,0.15)',
+        };
+    }
+  };
+
   return (
-    <div className="space-y-8 animate-ticker-slide">
-      {/* 1. FANCODE HERO BANNER CAROUSEL (Matches User's FanCode Screenshot) */}
-      <div className="relative w-full rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-r from-[#140b08] via-[#101217] to-[#0c121e] border border-white/10 shadow-2xl min-h-[380px] sm:min-h-[440px] flex items-center">
-        {/* Subtle Sports Background Graphics */}
-        <div className="absolute inset-0 pointer-events-none select-none opacity-30">
-          <div className="absolute right-0 top-0 bottom-0 w-3/5 bg-gradient-to-l from-broadcast-orange/20 to-transparent"></div>
-          <div className="absolute inset-0 bg-[radial-gradient(#ffffff08_1px,transparent_1px)] [background-size:24px_24px]"></div>
-        </div>
+    <div className="space-y-10 animate-ticker-slide pb-12 select-none">
+      {/* 1. CINEMATIC HERO MARQUEE */}
+      <div className="relative w-full rounded-3xl overflow-hidden border border-white/10 shadow-2xl min-h-[380px] sm:min-h-[440px] flex items-center bg-black">
+        {/* Animated Background Atmosphere */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={heroMatch?.id}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            className={`absolute inset-0 bg-gradient-to-r ${sportTheme(heroMatch?.sport || '').bg}`}
+          >
+            {/* Subtle radial spotlight glow */}
+            <div className="absolute right-10 top-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-broadcast-orange/15 blur-3xl pointer-events-none" />
+            <div className="absolute inset-0 bg-[radial-gradient(#ffffff0a_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none" />
+          </motion.div>
+        </AnimatePresence>
 
         {/* Carousel Navigation Arrows */}
         <button
           onClick={prevHero}
-          className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/60 hover:bg-black/80 border border-white/15 text-white flex items-center justify-center transition-all backdrop-blur-md"
-          title="Previous marquee match"
+          className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/60 hover:bg-black/90 border border-white/10 text-white flex items-center justify-center transition-all backdrop-blur-md hover:scale-105 active:scale-95 shadow-xl"
+          title="Previous Match"
         >
           <ChevronLeft className="w-5 h-5" />
         </button>
 
         <button
           onClick={nextHero}
-          className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/60 hover:bg-black/80 border border-white/15 text-white flex items-center justify-center transition-all backdrop-blur-md"
-          title="Next marquee match"
+          className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/60 hover:bg-black/90 border border-white/10 text-white flex items-center justify-center transition-all backdrop-blur-md hover:scale-105 active:scale-95 shadow-xl"
+          title="Next Match"
         >
           <ChevronRight className="w-5 h-5" />
         </button>
 
         {/* Hero Content */}
-        <div className="relative z-10 px-8 sm:px-16 py-8 sm:py-12 max-w-2xl space-y-4">
-          {/* Live Badge */}
+        <div className="relative z-10 px-8 sm:px-16 py-10 max-w-2xl space-y-4">
           <div className="flex items-center gap-2">
-            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-600 text-white text-[11px] font-black tracking-widest uppercase shadow-md shadow-red-600/30">
-              <span className="w-2 h-2 rounded-full bg-white animate-ping"></span>
+            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-600/90 text-white text-[10px] font-black tracking-widest uppercase shadow-lg shadow-red-600/30">
+              <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
               LIVE
             </span>
-            <span className="text-xs font-black uppercase tracking-wider text-broadcast-orange bg-broadcast-orange/15 px-2.5 py-0.5 rounded border border-broadcast-orange/30">
+            <span className="text-[11px] font-black uppercase tracking-wider text-broadcast-orange bg-broadcast-orange/15 px-2.5 py-0.5 rounded-full border border-broadcast-orange/30">
               {heroMatch?.sport}
             </span>
           </div>
 
-          {/* Marquee Match Title */}
-          <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-none drop-shadow-lg">
+          <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight">
             {heroMatch?.title}
           </h1>
 
-          {/* Tournament & Details */}
-          <p className="text-sm sm:text-base text-zinc-300 font-semibold drop-shadow">
-            {heroMatch?.tournament} · {heroMatch?.subtitle || 'Live Championship Stream'}
+          <p className="text-sm sm:text-base text-zinc-300 font-medium">
+            {heroMatch?.tournament} · {heroMatch?.subtitle}
           </p>
 
-          <p className="text-xs font-bold text-emerald-400 flex items-center gap-1.5 uppercase tracking-wider">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-            Match In Progress · Stream PTS Synced
-          </p>
-
-          {/* Action Buttons: Watch Live & Add to QuickWatch */}
-          <div className="flex flex-wrap items-center gap-3.5 pt-2">
+          {/* Action Row: Watch Button + SquishSwitch for QuickWatch */}
+          <div className="flex flex-wrap items-center gap-4 pt-3">
             <button
               onClick={() => heroMatch && handleWatchLive(heroMatch.id)}
-              className="flex items-center gap-2 px-6 sm:px-8 py-3 bg-broadcast-orange hover:bg-broadcast-orangeHover text-white rounded-xl text-sm font-black transition-all shadow-xl shadow-broadcast-orange/40 hover:scale-105 active:scale-95"
+              className="flex items-center gap-2 px-7 py-3 bg-broadcast-orange hover:bg-broadcast-orangeHover text-white rounded-2xl text-sm font-black transition-all shadow-xl shadow-broadcast-orange/30 hover:scale-105 active:scale-95"
             >
               <Play className="w-4 h-4 fill-current" />
               <span>WATCH LIVE</span>
             </button>
 
-            <button
-              onClick={() => heroMatch && toggleQuickWatch(heroMatch.id)}
-              className={`flex items-center gap-2 px-4 sm:px-5 py-3 rounded-xl text-xs font-bold transition-all border backdrop-blur-md ${
-                isHeroInQuickWatch
-                  ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300 shadow-md shadow-emerald-500/20'
-                  : 'bg-white/10 hover:bg-white/15 border-white/20 text-white'
-              }`}
-            >
-              {isHeroInQuickWatch ? (
-                <>
-                  <Check className="w-4 h-4 text-emerald-400" />
-                  <span>In QuickWatch List</span>
-                </>
-              ) : (
-                <>
-                  <Plus className="w-4 h-4" />
-                  <span>Add to QuickWatch</span>
-                </>
-              )}
-            </button>
+            {/* SquishSwitch for QuickWatch monitoring */}
+            <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-black/50 backdrop-blur-md border border-white/10">
+              <SquishSwitch
+                checked={Boolean(isHeroInQuickWatch)}
+                onChange={() => heroMatch && toggleQuickWatch(heroMatch.id)}
+                trackColor="#27272a"
+                trackOnColor="#ff5200"
+                width={52}
+                height={28}
+                radius={14}
+              />
+              <span className="text-xs font-bold text-zinc-300">
+                {isHeroInQuickWatch ? 'In QuickWatch' : 'Add QuickWatch'}
+              </span>
+            </div>
           </div>
 
-          {/* Carousel Dots */}
-          <div className="flex items-center gap-1.5 pt-4">
+          {/* Carousel Dot Indicators */}
+          <div className="flex items-center gap-2 pt-4">
             {matches.map((_, idx) => (
               <button
                 key={idx}
-                onClick={() => setActiveHeroIdx(idx)}
-                className={`h-1.5 rounded-full transition-all ${
-                  activeHeroIdx === idx ? 'w-6 bg-broadcast-orange' : 'w-2 bg-white/30'
+                onClick={() => setHeroIdx(idx)}
+                className={`h-1.5 rounded-full transition-all duration-300 ${
+                  heroIdx === idx ? 'w-8 bg-broadcast-orange' : 'w-2 bg-white/20 hover:bg-white/40'
                 }`}
-              ></button>
+              />
             ))}
           </div>
         </div>
       </div>
 
-      {/* 2. ALL LIVE NOW SECTION (Matches FanCode Screenshot) */}
+      {/* 2. LIVE STREAMS CARDS SECTION */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <h2 className="text-base sm:text-lg font-black text-white tracking-tight">
-              All Live Now ({matches.length})
-            </h2>
-            <ChevronRight className="w-4 h-4 text-zinc-400" />
+            <Activity className="w-4 h-4 text-broadcast-orange" />
+            <h2 className="text-lg font-black text-white tracking-tight">Live Matches ({matches.length})</h2>
           </div>
           <button
             onClick={() => setCurrentPage('settings')}
-            className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white transition-colors"
+            className="text-xs font-bold text-zinc-400 hover:text-white transition-colors flex items-center gap-1"
           >
             <Sparkles className="w-3.5 h-3.5 text-broadcast-orange" />
             <span>Preferences</span>
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {matches.map((m) => {
-            const isQuickWatch = quickWatchList.includes(m.id);
-            const latestEv = replayAdapter.getLatestEventForMatch(m.id, currentTime);
+            const isQuick = quickWatchList.includes(m.id);
+            const theme = sportTheme(m.sport);
 
             return (
-              <div
+              <motion.div
                 key={m.id}
-                className="group bg-[#111317] hover:bg-[#161922] border border-white/10 hover:border-white/20 rounded-2xl overflow-hidden shadow-xl transition-all flex flex-col justify-between"
+                whileHover={{ y: -4, transition: { duration: 0.2 } }}
+                className={`group bg-[#0e1017] rounded-3xl overflow-hidden border ${theme.border} transition-all shadow-xl flex flex-col justify-between`}
               >
-                {/* Thumbnail Header */}
-                <div className="relative aspect-video bg-black flex items-center justify-center overflow-hidden">
-                  {/* Subtle sports ambient graphic */}
-                  <div
-                    className={`w-full h-full bg-gradient-to-tr ${
-                      m.sport === 'tennis'
-                        ? 'from-[#0d1f18] to-[#122b22]'
-                        : m.sport === 'f1'
-                        ? 'from-[#1a0a0c] to-[#250e12]'
-                        : 'from-[#0e1624] to-[#14233a]'
-                    } flex items-center justify-center p-4`}
-                  >
-                    <div className="text-center">
-                      <span className="text-2xl font-black text-white/80 tracking-tight block">
-                        {m.title}
-                      </span>
-                      <span className="text-xs font-bold text-broadcast-orange uppercase tracking-wider mt-1 block">
-                        {m.tournament}
-                      </span>
-                    </div>
+                {/* Visual Header */}
+                <div
+                  onClick={() => handleWatchLive(m.id)}
+                  className="relative aspect-video bg-black flex items-center justify-center cursor-pointer overflow-hidden p-6"
+                >
+                  <div className={`absolute inset-0 bg-gradient-to-tr ${theme.bg} opacity-70 group-hover:scale-105 transition-transform duration-500`} />
+                  
+                  {/* Subtle Sport Graphic Text */}
+                  <div className="relative z-10 text-center">
+                    <span className="text-xl font-black text-white tracking-tight block">
+                      {m.title}
+                    </span>
+                    <span className="text-xs font-bold text-zinc-400 mt-1 block">
+                      {m.tournament}
+                    </span>
                   </div>
 
-                  {/* Red LIVE badge */}
-                  <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 px-2 py-0.5 rounded bg-red-600 text-white text-[10px] font-black uppercase tracking-wider shadow">
-                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
+                  {/* Top Badges */}
+                  <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-600 text-white text-[10px] font-black uppercase shadow">
+                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                     LIVE
                   </div>
 
-                  {/* Sport Badge */}
-                  <div className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded bg-black/60 backdrop-blur-md border border-white/10 text-[10px] font-black uppercase tracking-wider text-zinc-300">
+                  <div className="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-[10px] font-black uppercase text-zinc-300">
                     {m.sport}
                   </div>
                 </div>
 
-                {/* Content Details */}
-                <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
-                  <div>
-                    <h3 className="text-sm font-extrabold text-white group-hover:text-broadcast-orange transition-colors">
-                      {m.title}
-                    </h3>
-                    <p className="text-xs text-zinc-400 mt-0.5">{m.tournament}</p>
-
-                    {/* Live Telemetry preview */}
-                    <div className="mt-2.5 p-2 rounded-lg bg-[#090A0C] border border-white/5 text-[11px] text-zinc-300 font-medium truncate">
-                      <span className="text-broadcast-orange font-bold mr-1">Status:</span>
-                      {latestEv ? latestEv.headline : 'Live stream active'}
-                    </div>
+                {/* Footer Controls: Watch CTA + SquishSwitch */}
+                <div className="p-4 sm:p-5 flex items-center justify-between border-t border-white/5 bg-[#0a0c10]">
+                  <div className="flex items-center gap-2">
+                    <SquishSwitch
+                      checked={isQuick}
+                      onChange={() => toggleQuickWatch(m.id)}
+                      trackColor="#27272a"
+                      trackOnColor="#ff5200"
+                      width={44}
+                      height={24}
+                      radius={12}
+                    />
+                    <span className="text-[11px] font-bold text-zinc-400">
+                      {isQuick ? 'Watching' : 'QuickWatch'}
+                    </span>
                   </div>
 
-                  {/* Action Controls */}
-                  <div className="flex items-center justify-between gap-2 pt-2 border-t border-white/10">
-                    {/* Add to QuickWatch Button */}
-                    <button
-                      onClick={() => toggleQuickWatch(m.id)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
-                        isQuickWatch
-                          ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300 shadow-sm'
-                          : 'bg-white/5 hover:bg-white/10 border-white/10 text-zinc-400 hover:text-white'
-                      }`}
-                      title="Monitor this match with QuickWatch"
-                    >
-                      {isQuickWatch ? (
-                        <>
-                          <Check className="w-3.5 h-3.5 text-emerald-400" />
-                          <span>In QuickWatch</span>
-                        </>
-                      ) : (
-                        <>
-                          <Plus className="w-3.5 h-3.5" />
-                          <span>+ QuickWatch</span>
-                        </>
-                      )}
-                    </button>
-
-                    {/* Watch Live Stream Button */}
-                    <button
-                      onClick={() => handleWatchLive(m.id)}
-                      className="flex items-center gap-1.5 px-3.5 py-1.5 bg-broadcast-orange hover:bg-broadcast-orangeHover text-white rounded-xl text-xs font-black transition-all shadow-md shadow-broadcast-orange/30"
-                    >
-                      <Play className="w-3 h-3 fill-current" />
-                      <span>Watch</span>
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => handleWatchLive(m.id)}
+                    className="flex items-center gap-1.5 px-4 py-2 bg-white/10 hover:bg-broadcast-orange text-white rounded-xl text-xs font-black transition-all hover:shadow-lg hover:shadow-broadcast-orange/30"
+                  >
+                    <Play className="w-3.5 h-3.5 fill-current" />
+                    <span>Watch</span>
+                  </button>
                 </div>
-              </div>
+              </motion.div>
             );
           })}
         </div>

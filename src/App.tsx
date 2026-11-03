@@ -4,6 +4,7 @@ import { useClockEngine } from './engine/clock';
 import { TopBar } from './ui/TopBar';
 import { HomePage } from './ui/HomePage';
 import { NowWatching } from './ui/NowWatching';
+import { SettingsPage } from './ui/SettingsPage';
 import { AlertCard } from './ui/AlertCard';
 import { ReplayControlsPill } from './ui/ReplayControlsPill';
 import { SettingsDrawer } from './ui/SettingsDrawer';
@@ -82,13 +83,9 @@ export default function App() {
 
       {/* Main Page Content */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-5 lg:p-6">
-        {currentPage === 'home' ? (
-          /* FanCode Home Page: Hero Carousel + QuickWatch + All Live Now */
-          <HomePage />
-        ) : (
-          /* FanCode Live Match Page: 16:9 Stream + In-Player HUD + Below-Player AI Slot */
-          <NowWatching />
-        )}
+        {currentPage === 'home' && <HomePage />}
+        {currentPage === 'match' && <NowWatching />}
+        {currentPage === 'settings' && <SettingsPage />}
       </main>
 
       {/* Floating 7-Second Pivotal Moment Alert Card */}

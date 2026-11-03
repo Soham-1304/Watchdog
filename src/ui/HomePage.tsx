@@ -17,8 +17,6 @@ export function HomePage() {
   const setCurrentPage = useReplayStore((s) => s.setCurrentPage);
   const quickWatchList = useReplayStore((s) => s.quickWatchList);
   const toggleQuickWatch = useReplayStore((s) => s.toggleQuickWatch);
-  const setSettingsDrawerOpen = useReplayStore((s) => s.setSettingsDrawerOpen);
-  const setSettingsTab = useReplayStore((s) => s.setSettingsTab);
 
   const [activeHeroIdx, setActiveHeroIdx] = useState(0);
 
@@ -151,14 +149,11 @@ export function HomePage() {
             <ChevronRight className="w-4 h-4 text-zinc-400" />
           </div>
           <button
-            onClick={() => {
-              setSettingsTab('cutaway');
-              setSettingsDrawerOpen(true);
-            }}
+            onClick={() => setCurrentPage('settings')}
             className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white transition-colors"
           >
             <Sparkles className="w-3.5 h-3.5 text-broadcast-orange" />
-            <span>Alerts Settings</span>
+            <span>Preferences</span>
           </button>
         </div>
 

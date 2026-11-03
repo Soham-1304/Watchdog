@@ -3,11 +3,18 @@ import { useReplayStore } from '../store/useReplayStore';
 import { CricketState, F1State, TennisState } from '../types';
 import { replayAdapter } from '../adapters/replayAdapter';
 
-// Embeddable YouTube sports footage matching each active match
+// Embeddable YouTube sports footage strictly matching each active match fixture
 const STREAM_VIDEO_IDS: Record<string, string> = {
-  m_tennis_01: 'Qx0jtTRYsH4', // Rolex Paris Masters ATP Highlights
-  m_f1_01: 'S_jdcUVtaTU',     // F1 Yas Marina Abu Dhabi GP Onboard
-  m_cricket_01: 'W4nj50SkI5M', // England vs West Indies T20 Highlights
+  'match-tennis-ao24': 'frRVq6FI_5c', // Australian Open 2024 Men's Final (Jannik Sinner vs Daniil Medvedev)
+  'match-f1-abudhabi21': 'S_jdcUVtaTU', // 2021 Abu Dhabi Grand Prix (Max Verstappen vs Lewis Hamilton)
+  'match-cricket-t20wc24': '3yiWqnKl7lQ', // ICC T20 World Cup 2024 Final (India vs South Africa)
+};
+
+// Sport-level fallbacks ensuring 100% video-to-sport fidelity
+const SPORT_FALLBACK_VIDEOS: Record<string, string> = {
+  tennis: 'frRVq6FI_5c',
+  f1: 'S_jdcUVtaTU',
+  cricket: '3yiWqnKl7lQ',
 };
 
 export function BroadcastCanvas() {
@@ -22,7 +29,7 @@ export function BroadcastCanvas() {
   if (!activeMatch) return null;
 
   const sport = activeMatch.sport;
-  const videoId = STREAM_VIDEO_IDS[activeMatchId] || 'Qx0jtTRYsH4';
+  const videoId = STREAM_VIDEO_IDS[activeMatchId] || SPORT_FALLBACK_VIDEOS[sport] || 'frRVq6FI_5c';
 
   return (
     <div className="relative w-full h-full select-none overflow-hidden bg-black">
@@ -124,8 +131,8 @@ function TennisBroadcastOverlay({ state }: { state?: TennisState }) {
       <div className="mt-auto mb-10 self-start bg-black/85 backdrop-blur-md rounded-lg border border-white/20 shadow-2xl overflow-hidden font-mono-numbers text-xs">
         {/* Header */}
         <div className="bg-[#002B49] px-2.5 py-0.5 flex items-center justify-between text-white text-[9px] sm:text-[10px] font-black tracking-wider uppercase border-b border-white/10">
-          <span>ROLEX PARIS MASTERS</span>
-          <span className="text-amber-400">SET 3 DECIDER</span>
+          <span>AUSTRALIAN OPEN 2024</span>
+          <span className="text-amber-400">ROD LAVER ARENA · SET 5</span>
         </div>
 
         {/* Players & Sets */}
@@ -185,17 +192,17 @@ function CricketBroadcastOverlay({ state }: { state?: CricketState }) {
       {/* Broadcast Score Strip */}
       <div className="mb-10 self-start bg-black/85 backdrop-blur-md rounded-lg border border-white/20 shadow-2xl p-2 sm:p-2.5 font-mono-numbers text-xs min-w-[260px] sm:min-w-[300px]">
         <div className="flex items-center justify-between text-[10px] text-zinc-400 uppercase font-black tracking-wider border-b border-white/10 pb-1 mb-1.5">
-          <span className="text-broadcast-orange">FANCODE T20 LIVE</span>
-          <span>CRR: {state?.currentRunRate?.toFixed(1) || '8.2'}</span>
+          <span className="text-broadcast-orange">ICC T20 WC 2024 FINAL</span>
+          <span>CRR: {state?.currentRunRate?.toFixed(1) || '8.8'}</span>
         </div>
 
         <div className="flex items-baseline justify-between text-white">
           <div>
-            <span className="text-sm font-black mr-2">{state?.battingTeam || 'WI A'}</span>
+            <span className="text-sm font-black mr-2">{state?.battingTeam || 'SA'}</span>
             <span className="text-base sm:text-lg font-black text-broadcast-orange">
-              {state?.score || 158}/{state?.wickets || 4}
+              {state?.score || 151}/{state?.wickets || 4}
             </span>
-            <span className="text-zinc-400 text-xs ml-1.5">({state?.overs || 18.2} ov)</span>
+            <span className="text-zinc-400 text-xs ml-1.5">({state?.overs || 15.1} ov)</span>
           </div>
 
           {runsNeeded > 0 && (

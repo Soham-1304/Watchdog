@@ -5,19 +5,15 @@ export function TopBar() {
   const currentPage = useReplayStore((s) => s.currentPage);
   const setCurrentPage = useReplayStore((s) => s.setCurrentPage);
   const quickWatchList = useReplayStore((s) => s.quickWatchList);
-  const setSettingsDrawerOpen = useReplayStore((s) => s.setSettingsDrawerOpen);
-  const setSettingsTab = useReplayStore((s) => s.setSettingsTab);
   const switchMatch = useReplayStore((s) => s.switchMatch);
   const matches = useReplayStore((s) => s.matches);
 
   const openQuickWatchSettings = () => {
-    setSettingsTab('quickwatch');
-    setSettingsDrawerOpen(true);
+    setCurrentPage('settings');
   };
 
   const openUserSettings = () => {
-    setSettingsTab('cutaway');
-    setSettingsDrawerOpen(true);
+    setCurrentPage('settings');
   };
 
   const handleSelectSport = (sport: string) => {

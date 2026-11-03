@@ -66,23 +66,23 @@ export function AlertCard() {
       case 'tennis':
         return {
           glow: 'from-lime-500/20 to-emerald-500/10',
-          border: 'border-lime-400/60 ring-lime-400/30',
-          chip: 'bg-lime-500/15 text-lime-300 border-lime-400/40',
+          border: 'border-lime-400/50',
+          chip: 'bg-lime-500/15 text-lime-300 border-lime-400/30',
           progress: 'bg-lime-400',
         };
       case 'f1':
         return {
-          glow: 'from-red-600/25 to-amber-500/10',
-          border: 'border-red-500/60 ring-red-500/30',
-          chip: 'bg-red-500/15 text-red-300 border-red-500/40',
+          glow: 'from-red-600/20 to-amber-500/10',
+          border: 'border-red-500/50',
+          chip: 'bg-red-500/15 text-red-300 border-red-500/30',
           progress: 'bg-red-500',
         };
       case 'cricket':
       default:
         return {
-          glow: 'from-broadcast-orange/25 to-amber-500/10',
-          border: 'border-broadcast-orange/60 ring-broadcast-orange/30',
-          chip: 'bg-broadcast-orange/15 text-broadcast-orange border-broadcast-orange/40',
+          glow: 'from-broadcast-orange/20 to-amber-500/10',
+          border: 'border-broadcast-orange/50',
+          chip: 'bg-broadcast-orange/15 text-broadcast-orange border-broadcast-orange/30',
           progress: 'bg-broadcast-orange',
         };
     }
@@ -97,115 +97,106 @@ export function AlertCard() {
         setIsHovered(false);
         endHold();
       }}
-      className="fixed bottom-6 right-4 sm:right-6 z-50 max-w-md w-[calc(100vw-2rem)] sm:w-[420px] animate-slide-in-right"
+      className="fixed bottom-4 right-4 sm:bottom-5 sm:right-5 z-50 w-[calc(100vw-2rem)] sm:w-[310px] animate-slide-in-right select-none"
     >
       <div
-        className={`broadcast-glass-translucent border ${accent.border} rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-2xl relative overflow-hidden ring-1`}
+        className={`bg-[#090b14]/85 backdrop-blur-xl border ${accent.border} rounded-2xl p-3 sm:p-3.5 shadow-2xl relative overflow-hidden ring-1 ring-white/10`}
       >
         {/* Glow corner ambient light */}
         <div
-          className={`absolute top-0 right-0 w-36 h-36 bg-gradient-to-br ${accent.glow} rounded-full blur-3xl -mr-12 -mt-12 pointer-events-none`}
+          className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${accent.glow} rounded-full blur-2xl -mr-6 -mt-6 pointer-events-none`}
         ></div>
 
-        {/* Top bar of Alert Card */}
-        <div className="flex items-center justify-between gap-2.5 mb-2.5">
-          <div className="flex items-center gap-2 flex-wrap">
+        {/* Top Header of Alert Card */}
+        <div className="flex items-center justify-between gap-2 mb-1.5">
+          <div className="flex items-center gap-1.5 flex-wrap">
             <span
-              className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border ${accent.chip}`}
+              className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded border ${accent.chip}`}
             >
               {activeAlert.event.sport}
             </span>
 
             {/* Importance Chip */}
-            <div className="px-2.5 py-0.5 rounded-full font-black text-xs font-mono-numbers bg-gradient-to-r from-broadcast-orange to-amber-500 text-white shadow-md flex items-center gap-1">
-              <span>{activeAlert.effectiveScore}/10</span>
-              <span className="text-[9px] tracking-wider uppercase">PIVOTAL</span>
-            </div>
+            <span className="px-1.5 py-0.5 rounded-full font-black text-[10px] font-mono-numbers bg-broadcast-orange/20 text-broadcast-orange border border-broadcast-orange/30">
+              {activeAlert.effectiveScore}/10
+            </span>
 
             {/* Pinned boost indicator */}
             {activeAlert.isPinnedBoost && (
-              <span className="text-[9px] font-bold text-amber-300 bg-amber-500/20 px-1.5 py-0.5 rounded-full border border-amber-500/30 flex items-center gap-0.5">
+              <span className="text-[9px] font-bold text-amber-300 flex items-center gap-0.5">
                 <Pin className="w-2.5 h-2.5 fill-current" />
-                PIN BOOST (+2)
+                +2
               </span>
             )}
           </div>
 
           <button
             onClick={dismissAlert}
-            className="text-broadcast-subtle hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors"
-            title="Dismiss alert"
+            className="text-zinc-500 hover:text-white p-0.5 rounded hover:bg-white/10 transition-colors"
+            title="Dismiss"
           >
-            <X className="w-4 h-4" />
+            <X className="w-3.5 h-3.5" />
           </button>
         </div>
 
         {/* Alert Headline */}
-        <h4 className="text-sm sm:text-base font-extrabold text-white leading-snug tracking-tight mb-2">
+        <h4 className="text-xs sm:text-[13px] font-extrabold text-white leading-tight tracking-tight mb-1">
           {activeAlert.alert}
         </h4>
 
-        {/* Contextual Tactical Insight */}
-        <div className="bg-[#090A0C]/80 rounded-xl p-3 border border-white/10 mb-3 space-y-1.5 shadow-inner">
-          <p className="text-xs text-zinc-200 leading-relaxed font-medium">
-            {activeAlert.why}
-          </p>
+        {/* Tactical Context */}
+        <p className="text-[11px] text-zinc-300 leading-snug font-medium mb-2 line-clamp-2">
+          {activeAlert.why}
+        </p>
 
-          {/* Novice explainer if enabled */}
-          {settings.novice && activeAlert.novice_note && (
-            <div className="pt-1.5 border-t border-white/10 text-[11px] text-amber-300 font-normal flex items-start gap-1.5">
-              <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider shrink-0 bg-amber-500/15 px-1 rounded">Rule</span>
-              <span>{activeAlert.novice_note}</span>
-            </div>
-          )}
-        </div>
+        {/* Novice explainer if enabled */}
+        {settings.novice && activeAlert.novice_note && (
+          <div className="mb-2 p-1.5 rounded-lg bg-black/40 border border-white/5 text-[10px] text-amber-300 flex items-start gap-1">
+            <span className="font-bold text-amber-400 uppercase text-[9px] shrink-0">Rule:</span>
+            <span className="line-clamp-2">{activeAlert.novice_note}</span>
+          </div>
+        )}
 
-        {/* Action Controls: Mobile HOLD gesture + Desktop Tap */}
-        <div className="flex items-center justify-between gap-2 pt-1">
+        {/* Action Controls: Hold-to-switch & Dismiss */}
+        <div className="flex items-center justify-between gap-2 pt-0.5">
           <button
             onClick={dismissAlert}
-            className="px-3 py-1.5 text-xs font-bold text-broadcast-muted hover:text-white rounded-lg hover:bg-white/5 transition-colors"
+            className="text-[10px] font-bold text-zinc-400 hover:text-white px-2 py-1 rounded hover:bg-white/5 transition-colors"
           >
-            Stay Here
+            Stay
           </button>
 
-          {/* Mobile & Desktop Hold-to-Switch Button */}
-          <div className="relative select-none">
-            <button
-              onMouseDown={startHold}
-              onMouseUp={endHold}
-              onTouchStart={startHold}
-              onTouchEnd={endHold}
-              onTouchCancel={endHold}
-              onClick={() => {
-                // Allow instant tap on desktop if not holding
-                if (holdProgress < 10) handleSwitch();
-              }}
-              className="relative overflow-hidden flex items-center gap-2 px-3.5 sm:px-4 py-2 bg-gradient-to-r from-broadcast-orange to-broadcast-orangeHover hover:brightness-110 text-white rounded-xl text-xs font-black transition-all shadow-lg shadow-broadcast-orange/30 active:scale-95"
-            >
-              {/* Radial or linear hold fill */}
-              {holdProgress > 0 && (
-                <div
-                  className="absolute inset-0 bg-white/30 transition-all pointer-events-none"
-                  style={{ width: `${holdProgress}%` }}
-                ></div>
-              )}
+          {/* Hold-to-Switch Button */}
+          <button
+            onMouseDown={startHold}
+            onMouseUp={endHold}
+            onTouchStart={startHold}
+            onTouchEnd={endHold}
+            onTouchCancel={endHold}
+            onClick={() => {
+              if (holdProgress < 10) handleSwitch();
+            }}
+            className="relative overflow-hidden flex items-center gap-1.5 px-3 py-1.5 bg-broadcast-orange hover:bg-broadcast-orangeHover text-white rounded-xl text-[11px] font-black transition-all shadow-md shadow-broadcast-orange/30 active:scale-95"
+          >
+            {/* Animated hold progress bar */}
+            {holdProgress > 0 && (
+              <div
+                className="absolute inset-0 bg-white/30 transition-all pointer-events-none"
+                style={{ width: `${holdProgress}%` }}
+              ></div>
+            )}
 
-              <Hand className="w-3.5 h-3.5 sm:hidden animate-pulse" />
-              <span className="relative z-10 hidden sm:inline">
-                {holdProgress > 0 ? `Switching ${Math.round(holdProgress)}%...` : 'Switch to Stream'}
-              </span>
-              <span className="relative z-10 sm:hidden">
-                {holdProgress > 0 ? `Holding ${Math.round(holdProgress)}%...` : 'HOLD 1s TO SWITCH'}
-              </span>
-              <ArrowRight className="w-3.5 h-3.5 relative z-10" />
-            </button>
-          </div>
+            <Hand className="w-3 h-3 sm:hidden" />
+            <span className="relative z-10">
+              {holdProgress > 0 ? `Holding ${Math.round(holdProgress)}%...` : 'HOLD TO SWITCH'}
+            </span>
+            <ArrowRight className="w-3 h-3 relative z-10" />
+          </button>
         </div>
 
-        {/* 7-Second Auto-dismiss progress bar (pauses if hovered) */}
+        {/* 7-Second Auto-dismiss thin progress line */}
         {!isHovered && (
-          <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/10 overflow-hidden">
+          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/10 overflow-hidden">
             <div className={`h-full ${accent.progress} animate-shrink-width origin-left`}></div>
           </div>
         )}

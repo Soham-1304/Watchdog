@@ -52,7 +52,7 @@ interface ReplayStoreState {
   totalAlertsCount: number;
 
   // Modals & Panels
-  currentPage: 'home' | 'match';
+  currentPage: 'home' | 'match' | 'settings';
   quickWatchList: string[];
   settingsTab: 'profile' | 'quickwatch' | 'cutaway';
   isFilteredDrawerOpen: boolean;
@@ -62,7 +62,7 @@ interface ReplayStoreState {
   demoStep: number;
 
   // Actions
-  setCurrentPage: (page: 'home' | 'match') => void;
+  setCurrentPage: (page: 'home' | 'match' | 'settings') => void;
   toggleQuickWatch: (matchId: string) => void;
   setSettingsTab: (tab: 'profile' | 'quickwatch' | 'cutaway') => void;
   initialize: () => Promise<void>;

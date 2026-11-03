@@ -52,6 +52,7 @@ interface ReplayStoreState {
   totalAlertsCount: number;
 
   // Modals & Panels
+  theme: 'dark' | 'light';
   currentPage: 'home' | 'match' | 'settings';
   quickWatchList: string[];
   settingsTab: 'profile' | 'quickwatch' | 'cutaway';
@@ -62,6 +63,7 @@ interface ReplayStoreState {
   demoStep: number;
 
   // Actions
+  toggleTheme: () => void;
   setCurrentPage: (page: 'home' | 'match' | 'settings') => void;
   toggleQuickWatch: (matchId: string) => void;
   setSettingsTab: (tab: 'profile' | 'quickwatch' | 'cutaway') => void;
@@ -125,6 +127,7 @@ export const useReplayStore = create<ReplayStoreState>((set, get) => ({
   totalEvaluatedCount: 0,
   totalAlertsCount: 0,
 
+  theme: 'dark',
   currentPage: 'home',
   quickWatchList: ['match-cricket-t20wc24', 'match-f1-abudhabi21', 'match-tennis-ao24'],
   settingsTab: 'cutaway',
@@ -134,6 +137,13 @@ export const useReplayStore = create<ReplayStoreState>((set, get) => ({
   isGuidedDemoActive: false,
   demoStep: 0,
 
+  toggleTheme: () => {
+    const next = get().theme === 'dark' ? 'light' : 'dark';
+    if (typeof document !== 'undefined') {
+      document.documentElement.classList.toggle('dark', next === 'dark');
+    }
+    set({ theme: next });
+  },
   setCurrentPage: (page) => set({ currentPage: page }),
   toggleQuickWatch: (matchId) => {
     const current = get().quickWatchList;

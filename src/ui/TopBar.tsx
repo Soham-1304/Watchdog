@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Sparkles, Settings } from 'lucide-react';
+import { Sparkles, Settings, Sun, Moon } from 'lucide-react';
 import { useReplayStore } from '../store/useReplayStore';
 
 export function TopBar() {
@@ -9,6 +9,8 @@ export function TopBar() {
   const activeMatchId = useReplayStore((s) => s.activeMatchId);
   const switchMatch = useReplayStore((s) => s.switchMatch);
   const matches = useReplayStore((s) => s.matches);
+  const theme = useReplayStore((s) => s.theme);
+  const toggleTheme = useReplayStore((s) => s.toggleTheme);
 
   const handleSelectSport = (sport: 'tennis' | 'f1' | 'cricket') => {
     const match = matches.find((m) => m.sport === sport);
@@ -21,7 +23,7 @@ export function TopBar() {
   const activeMatch = matches.find((m) => m.id === activeMatchId);
 
   return (
-    <header className="sticky top-0 z-40 bg-[#08090c]/90 backdrop-blur-xl border-b border-white/5 px-4 lg:px-8 py-3 transition-all select-none">
+    <header className="sticky top-0 z-40 bg-white/85 dark:bg-[#08090c]/90 backdrop-blur-xl border-b border-slate-200/80 dark:border-white/5 px-4 lg:px-8 py-3 transition-colors duration-200 select-none">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
         {/* Left: FanCode Logo & Primary Navigation */}
         <div className="flex items-center gap-6 sm:gap-8">
@@ -36,12 +38,14 @@ export function TopBar() {
           </div>
 
           {/* Simple Clean Navigation: Home + 3 Streams */}
-          <nav className="flex items-center gap-2 sm:gap-3 text-xs font-bold text-zinc-400">
+          <nav className="flex items-center gap-1 sm:gap-2 text-xs font-bold text-slate-600 dark:text-zinc-400">
             {/* Home */}
             <button
               onClick={() => setCurrentPage('home')}
               className={`relative px-3 py-1.5 rounded-lg transition-colors ${
-                currentPage === 'home' ? 'text-white' : 'hover:text-zinc-200'
+                currentPage === 'home'
+                  ? 'text-slate-900 dark:text-white'
+                  : 'hover:text-slate-900 dark:hover:text-zinc-200'
               }`}
             >
               Home
@@ -59,8 +63,8 @@ export function TopBar() {
               onClick={() => handleSelectSport('tennis')}
               className={`relative px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${
                 currentPage === 'match' && activeMatch?.sport === 'tennis'
-                  ? 'text-white'
-                  : 'hover:text-zinc-200'
+                  ? 'text-slate-900 dark:text-white'
+                  : 'hover:text-slate-900 dark:hover:text-zinc-200'
               }`}
             >
               <span>Tennis</span>
@@ -78,8 +82,8 @@ export function TopBar() {
               onClick={() => handleSelectSport('f1')}
               className={`relative px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${
                 currentPage === 'match' && activeMatch?.sport === 'f1'
-                  ? 'text-white'
-                  : 'hover:text-zinc-200'
+                  ? 'text-slate-900 dark:text-white'
+                  : 'hover:text-slate-900 dark:hover:text-zinc-200'
               }`}
             >
               <span>Formula 1</span>
@@ -97,8 +101,8 @@ export function TopBar() {
               onClick={() => handleSelectSport('cricket')}
               className={`relative px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${
                 currentPage === 'match' && activeMatch?.sport === 'cricket'
-                  ? 'text-white'
-                  : 'hover:text-zinc-200'
+                  ? 'text-slate-900 dark:text-white'
+                  : 'hover:text-slate-900 dark:hover:text-zinc-200'
               }`}
             >
               <span>Cricket</span>
@@ -113,12 +117,21 @@ export function TopBar() {
           </nav>
         </div>
 
-        {/* Right: QuickWatch Pill & Settings */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        {/* Right: Theme Toggle, QuickWatch Pill & Settings */}
+        <div className="flex items-center gap-2 sm:gap-2.5">
+          {/* Light / Dark Mode Toggle */}
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-zinc-300 border border-slate-200 dark:border-white/10 transition-colors"
+            title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
+          >
+            {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-700" />}
+          </button>
+
           {/* QuickWatch Pill */}
           <button
             onClick={() => setCurrentPage('settings')}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-zinc-300 hover:text-white transition-all shadow-inner"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-xs font-bold text-slate-700 dark:text-zinc-300 transition-all shadow-sm"
             title="QuickWatch Feeds"
           >
             <Sparkles className="w-3.5 h-3.5 text-broadcast-orange fill-current" />
@@ -134,7 +147,7 @@ export function TopBar() {
             className={`p-2 rounded-xl transition-all ${
               currentPage === 'settings'
                 ? 'bg-broadcast-orange text-white shadow-lg shadow-broadcast-orange/30'
-                : 'bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10'
+                : 'bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-zinc-300 border border-slate-200 dark:border-white/10'
             }`}
             title="Settings & Preferences"
           >

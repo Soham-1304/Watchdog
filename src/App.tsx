@@ -14,7 +14,12 @@ export default function App() {
   const isLoaded = useReplayStore((s) => s.isLoaded);
   const initialize = useReplayStore((s) => s.initialize);
   const currentPage = useReplayStore((s) => s.currentPage);
+  const theme = useReplayStore((s) => s.theme);
   const togglePlay = useReplayStore((s) => s.togglePlay);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+  }, [theme]);
   const matches = useReplayStore((s) => s.matches);
   const switchMatch = useReplayStore((s) => s.switchMatch);
   const dismissAlert = useReplayStore((s) => s.dismissAlert);
@@ -77,7 +82,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#090A0C] text-[#F4F4F6] flex flex-col justify-between selection:bg-broadcast-orange selection:text-white pb-20">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#090A0C] text-slate-900 dark:text-[#F4F4F6] flex flex-col justify-between selection:bg-broadcast-orange selection:text-white pb-20 transition-colors duration-200">
       {/* Authentic FanCode Top Navigation Bar */}
       <TopBar />
 
@@ -88,8 +93,8 @@ export default function App() {
         {currentPage === 'settings' && <SettingsPage />}
       </main>
 
-      {/* Floating 7-Second Pivotal Moment Alert Card */}
-      <AlertCard />
+      {/* Floating 7-Second Pivotal Moment Alert Card (Only on stream/match page) */}
+      {currentPage === 'match' && <AlertCard />}
 
       {/* Sleek Floating Simulation Replay Controller Pill */}
       <ReplayControlsPill />

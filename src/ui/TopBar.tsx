@@ -101,7 +101,7 @@ export function TopBar() {
           <button
             onClick={openQuickWatchSettings}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-zinc-300 hover:text-white transition-all shadow-inner"
-            title="View Cutaway QuickWatch Sentinel"
+            title="QuickWatch Feeds"
           >
             <Sparkles className="w-3.5 h-3.5 text-broadcast-orange fill-current" />
             <span className="hidden sm:inline">QuickWatch</span>
@@ -114,7 +114,7 @@ export function TopBar() {
           <button
             onClick={openUserSettings}
             className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 flex items-center justify-center text-zinc-300 hover:text-white transition-all"
-            title="User Account & Cutaway AI Preferences"
+            title="Account & Alert Preferences"
           >
             <User className="w-4 h-4" />
           </button>

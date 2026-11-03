@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { ArrowRight, X, Sparkles, Pin, BookOpen, Hand } from 'lucide-react';
+import { ArrowRight, X, Pin, Hand } from 'lucide-react';
 import { useReplayStore } from '../store/useReplayStore';
 
 export function AlertCard() {
@@ -145,24 +145,17 @@ export function AlertCard() {
           {activeAlert.alert}
         </h4>
 
-        {/* Contextual "Why" */}
-        <div className="bg-[#090A0C]/80 rounded-xl p-3 border border-white/10 mb-3 shadow-inner">
-          <div className="flex items-start gap-2">
-            <Sparkles className="w-3.5 h-3.5 text-broadcast-orange shrink-0 mt-0.5" />
-            <p className="text-xs text-zinc-300 leading-relaxed font-medium">
-              <span className="font-bold text-white">Why it matters: </span>
-              {activeAlert.why}
-            </p>
-          </div>
+        {/* Contextual Tactical Insight */}
+        <div className="bg-[#090A0C]/80 rounded-xl p-3 border border-white/10 mb-3 space-y-1.5 shadow-inner">
+          <p className="text-xs text-zinc-200 leading-relaxed font-medium">
+            {activeAlert.why}
+          </p>
 
           {/* Novice explainer if enabled */}
           {settings.novice && activeAlert.novice_note && (
-            <div className="mt-2 pt-2 border-t border-white/10 flex items-start gap-1.5 text-[11px] text-amber-200/95 bg-amber-500/10 p-2 rounded-lg border border-amber-500/20">
-              <BookOpen className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
-              <span>
-                <strong className="text-amber-300 font-bold">Rule Explainer: </strong>
-                {activeAlert.novice_note}
-              </span>
+            <div className="pt-1.5 border-t border-white/10 text-[11px] text-amber-300 font-normal flex items-start gap-1.5">
+              <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider shrink-0 bg-amber-500/15 px-1 rounded">Rule</span>
+              <span>{activeAlert.novice_note}</span>
             </div>
           )}
         </div>

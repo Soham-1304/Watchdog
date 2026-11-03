@@ -6,7 +6,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Sparkles,
-  Sliders,
 } from 'lucide-react';
 import { useReplayStore } from '../store/useReplayStore';
 import { replayAdapter } from '../adapters/replayAdapter';
@@ -142,38 +141,7 @@ export function HomePage() {
         </div>
       </div>
 
-      {/* 2. CUTAWAY QUICKWATCH SENTINEL SUMMARY CARD */}
-      <div className="bg-[#111317] rounded-2xl p-4 sm:p-5 border border-white/10 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-start sm:items-center gap-3">
-          <div className="p-2 rounded-xl bg-broadcast-orange/20 text-broadcast-orange border border-broadcast-orange/30 shrink-0">
-            <Sparkles className="w-5 h-5 fill-current" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="text-sm font-black text-white">Cutaway Multi-Match Sentinel</h3>
-              <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full">
-                {quickWatchList.length} Active in QuickWatch
-              </span>
-            </div>
-            <p className="text-xs text-zinc-400 mt-0.5">
-              Add matches to your QuickWatch list below. While watching any stream, Cutaway's 3 AI agents monitor your list in the background and trigger 7s alerts only on turning points.
-            </p>
-          </div>
-        </div>
-
-        <button
-          onClick={() => {
-            setSettingsTab('cutaway');
-            setSettingsDrawerOpen(true);
-          }}
-          className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-bold text-zinc-300 hover:text-white transition-all shrink-0"
-        >
-          <Sliders className="w-3.5 h-3.5 text-broadcast-orange" />
-          <span>Configure AI Agents</span>
-        </button>
-      </div>
-
-      {/* 3. "ALL LIVE NOW" CAROUSEL ROW (Matches FanCode Screenshot) */}
+      {/* 2. ALL LIVE NOW SECTION (Matches FanCode Screenshot) */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -182,7 +150,16 @@ export function HomePage() {
             </h2>
             <ChevronRight className="w-4 h-4 text-zinc-400" />
           </div>
-          <span className="text-xs text-zinc-500">Click Watch to view, or + to add to QuickWatch</span>
+          <button
+            onClick={() => {
+              setSettingsTab('cutaway');
+              setSettingsDrawerOpen(true);
+            }}
+            className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white transition-colors"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-broadcast-orange" />
+            <span>Alerts Settings</span>
+          </button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -254,7 +231,7 @@ export function HomePage() {
                           ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300 shadow-sm'
                           : 'bg-white/5 hover:bg-white/10 border-white/10 text-zinc-400 hover:text-white'
                       }`}
-                      title="Monitor this match with Cutaway AI Sentinel"
+                      title="Monitor this match with QuickWatch"
                     >
                       {isQuickWatch ? (
                         <>

@@ -1,4 +1,4 @@
-import { Sparkles, Sliders, BookOpen, Shield } from 'lucide-react';
+import { Sparkles, Sliders } from 'lucide-react';
 import { useReplayStore } from '../store/useReplayStore';
 
 export function InPlayerHUD() {
@@ -7,68 +7,56 @@ export function InPlayerHUD() {
   const settings = useReplayStore((s) => s.settings);
   const updateSettings = useReplayStore((s) => s.updateSettings);
   const setSettingsDrawerOpen = useReplayStore((s) => s.setSettingsDrawerOpen);
+  const setSettingsTab = useReplayStore((s) => s.setSettingsTab);
 
   if (!isOpen) return null;
 
   return (
-    <div className="absolute top-12 right-4 z-40 w-80 broadcast-glass rounded-2xl p-4 shadow-2xl border border-white/15 animate-ticker-slide text-xs">
+    <div className="absolute top-12 right-4 z-40 w-72 bg-[#12151d]/95 backdrop-blur-xl rounded-2xl p-3.5 shadow-2xl border border-white/15 animate-ticker-slide text-xs">
       {/* Header */}
-      <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-3">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-broadcast-orange/20 text-broadcast-orange border border-broadcast-orange/30">
-            <Sparkles className="w-3.5 h-3.5" />
-          </div>
-          <div>
-            <h4 className="font-extrabold text-white text-xs">In-Stream AI Sentinel</h4>
-            <p className="text-[10px] text-broadcast-subtle">Quick live cues (like CC / Audio)</p>
-          </div>
+      <div className="flex items-center justify-between pb-2 border-b border-white/10 mb-2.5">
+        <div className="flex items-center gap-1.5 font-bold text-white text-xs">
+          <Sparkles className="w-3.5 h-3.5 text-broadcast-orange fill-current" />
+          <span>Smart Cues</span>
         </div>
         <button
           onClick={() => setIsOpen(false)}
-          className="text-broadcast-subtle hover:text-white p-1 rounded"
+          className="text-zinc-400 hover:text-white p-0.5 rounded text-xs"
         >
           ✕
         </button>
       </div>
 
-      <div className="space-y-3.5">
-        {/* Master In-Stream Toggle */}
-        <div className="flex items-center justify-between bg-broadcast-card/80 p-2.5 rounded-xl border border-white/5">
-          <div className="flex items-center gap-2">
-            <Shield className="w-4 h-4 text-broadcast-orange" />
-            <div>
-              <span className="font-bold text-white block">Cutaway Alerts</span>
-              <span className="text-[10px] text-broadcast-subtle">Show turning points on video</span>
-            </div>
-          </div>
+      <div className="space-y-3">
+        {/* Toggle 1: Pivotal Alerts */}
+        <div className="flex items-center justify-between">
+          <span className="text-zinc-200 font-medium">Live Turning Points</span>
           <button
             onClick={() => updateSettings({ enabled: !settings.enabled })}
-            className={`w-11 h-6 rounded-full transition-colors p-0.5 shadow-inner ${
-              settings.enabled ? 'bg-broadcast-orange' : 'bg-broadcast-border'
+            className={`w-9 h-5 rounded-full transition-colors p-0.5 shadow-inner ${
+              settings.enabled ? 'bg-broadcast-orange' : 'bg-zinc-700'
             }`}
           >
             <div
-              className={`w-5 h-5 rounded-full bg-white transition-transform ${
-                settings.enabled ? 'translate-x-5' : 'translate-x-0'
+              className={`w-4 h-4 rounded-full bg-white transition-transform ${
+                settings.enabled ? 'translate-x-4' : 'translate-x-0'
               }`}
             ></div>
           </button>
         </div>
 
-        {/* Content Depth Selector */}
+        {/* Detail Level */}
         <div>
-          <label className="text-[10px] font-bold uppercase tracking-wider text-broadcast-subtle block mb-1.5">
-            Alert Depth (Cues)
-          </label>
-          <div className="grid grid-cols-3 gap-1.5 bg-broadcast-card p-1 rounded-xl border border-white/5">
+          <span className="text-[10px] text-zinc-400 block mb-1">Detail</span>
+          <div className="grid grid-cols-3 gap-1 bg-white/5 p-0.5 rounded-lg border border-white/5">
             {(['concise', 'tactical', 'stat_heavy'] as const).map((depth) => (
               <button
                 key={depth}
                 onClick={() => updateSettings({ contentDepth: depth })}
-                className={`py-1 text-[10px] font-bold rounded-lg transition-all capitalize ${
+                className={`py-1 text-[10px] font-bold rounded capitalize transition-all ${
                   settings.contentDepth === depth
                     ? 'bg-broadcast-orange text-white shadow-sm'
-                    : 'text-broadcast-muted hover:text-white'
+                    : 'text-zinc-400 hover:text-white'
                 }`}
               >
                 {depth === 'stat_heavy' ? 'Stats' : depth}
@@ -77,40 +65,35 @@ export function InPlayerHUD() {
           </div>
         </div>
 
-        {/* Novice Jargon Explainer Toggle */}
-        <div className="flex items-center justify-between bg-broadcast-card/80 p-2.5 rounded-xl border border-white/5">
-          <div className="flex items-center gap-2">
-            <BookOpen className="w-4 h-4 text-amber-400" />
-            <div>
-              <span className="font-bold text-white block">Novice Jargon Mode</span>
-              <span className="text-[10px] text-broadcast-subtle">Explain technical sports rules</span>
-            </div>
-          </div>
+        {/* Toggle 2: Casual Explanations */}
+        <div className="flex items-center justify-between pt-1 border-t border-white/5">
+          <span className="text-zinc-200 font-medium">Casual Explanations</span>
           <button
             onClick={() => updateSettings({ novice: !settings.novice })}
-            className={`w-11 h-6 rounded-full transition-colors p-0.5 shadow-inner ${
-              settings.novice ? 'bg-broadcast-orange' : 'bg-broadcast-border'
+            className={`w-9 h-5 rounded-full transition-colors p-0.5 shadow-inner ${
+              settings.novice ? 'bg-amber-500' : 'bg-zinc-700'
             }`}
           >
             <div
-              className={`w-5 h-5 rounded-full bg-white transition-transform ${
-                settings.novice ? 'translate-x-5' : 'translate-x-0'
+              className={`w-4 h-4 rounded-full bg-white transition-transform ${
+                settings.novice ? 'translate-x-4' : 'translate-x-0'
               }`}
             ></div>
           </button>
         </div>
 
-        {/* Link to Permanent Settings */}
+        {/* Link to Settings */}
         <button
           onClick={() => {
             setIsOpen(false);
+            setSettingsTab('cutaway');
             setSettingsDrawerOpen(true);
           }}
-          className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-broadcast-surface hover:bg-broadcast-card border border-white/10 text-broadcast-muted hover:text-white transition-all text-[11px] font-semibold"
+          className="w-full pt-2 border-t border-white/10 flex items-center justify-between text-[11px] text-zinc-400 hover:text-white"
         >
-          <div className="flex items-center gap-1.5">
-            <Sliders className="w-3.5 h-3.5 text-broadcast-orange" />
-            <span>All Preferences (Delay, Pins, Dream11)</span>
+          <div className="flex items-center gap-1">
+            <Sliders className="w-3 h-3 text-broadcast-orange" />
+            <span>All Preferences</span>
           </div>
           <span>→</span>
         </button>

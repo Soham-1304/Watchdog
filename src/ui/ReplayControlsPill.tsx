@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Play, Pause, RotateCcw, ChevronUp, ChevronDown, Sliders } from 'lucide-react';
+import { Play, Pause, RotateCcw, ChevronUp, ChevronDown } from 'lucide-react';
 import { useReplayStore } from '../store/useReplayStore';
 
 export function ReplayControlsPill() {
@@ -20,32 +20,35 @@ export function ReplayControlsPill() {
   const speeds: (1 | 5 | 10 | 20)[] = [1, 5, 10, 20];
 
   return (
-    <aside aria-label="Replay simulation controller" className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 select-none">
-      <div className="bg-[#111317]/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-2 transition-all ring-1 ring-white/5">
-        {/* Compact Collapsed Pill */}
-        <div className="flex items-center gap-2.5 px-2">
+    <aside
+      aria-label="Replay simulation controller"
+      className="fixed bottom-3 left-4 z-40 select-none opacity-50 hover:opacity-100 transition-opacity"
+    >
+      <div className="bg-[#111317]/90 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl p-1.5 transition-all text-xs">
+        {/* Compact Discreet Pill */}
+        <div className="flex items-center gap-2 px-1">
           {/* Play/Pause */}
           <button
             onClick={togglePlay}
-            className="w-7 h-7 rounded-lg bg-broadcast-orange hover:brightness-110 text-white flex items-center justify-center transition-all shadow-md shadow-broadcast-orange/30"
-            title="Toggle playback (Space)"
+            className="w-6 h-6 rounded-md bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
+            title="Toggle playback"
           >
-            {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 fill-current" />}
+            {isPlaying ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3 fill-current ml-0.5" />}
           </button>
 
           {/* Time Badge */}
-          <span className="font-mono-numbers text-xs font-bold text-white px-2 py-0.5 rounded bg-white/5">
+          <span className="font-mono-numbers text-[11px] font-bold text-zinc-300">
             {formattedTime}
           </span>
 
           {/* Speed Selector */}
-          <div className="flex items-center bg-white/5 rounded-lg p-0.5">
+          <div className="flex items-center bg-white/5 rounded p-0.5">
             {speeds.map((s) => (
               <button
                 key={s}
                 onClick={() => setSpeed(s)}
-                className={`px-1.5 py-0.5 rounded text-[10px] font-bold font-mono-numbers transition-all ${
-                  speed === s ? 'bg-broadcast-orange text-white' : 'text-zinc-400 hover:text-white'
+                className={`px-1 py-0.5 rounded text-[10px] font-bold font-mono-numbers transition-colors ${
+                  speed === s ? 'bg-broadcast-orange text-white' : 'text-zinc-500 hover:text-white'
                 }`}
               >
                 {s}x
@@ -56,38 +59,31 @@ export function ReplayControlsPill() {
           {/* Restart */}
           <button
             onClick={restart}
-            className="p-1 text-zinc-400 hover:text-white rounded-lg hover:bg-white/5 transition-colors"
-            title="Restart replay from T=0"
+            className="p-1 text-zinc-500 hover:text-white rounded hover:bg-white/5 transition-colors"
+            title="Restart"
           >
-            <RotateCcw className="w-3.5 h-3.5" />
+            <RotateCcw className="w-3 h-3" />
           </button>
 
-          {/* Expand/Collapse Timeline Scrubber */}
+          {/* Scrubber toggle */}
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="text-zinc-400 hover:text-white p-1 rounded-lg hover:bg-white/5 transition-colors flex items-center gap-0.5 text-[11px]"
-            title="Toggle timeline scrubber"
+            className="text-zinc-500 hover:text-white p-1 rounded hover:bg-white/5 transition-colors"
           >
-            <Sliders className="w-3 h-3" />
-            {isExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronUp className="w-3.5 h-3.5" />}
+            {isExpanded ? <ChevronDown className="w-3 h-3" /> : <ChevronUp className="w-3 h-3" />}
           </button>
         </div>
 
-        {/* Expanded Scrubber Drawer */}
+        {/* Expanded Scrubber */}
         {isExpanded && (
-          <div className="mt-2.5 pt-2 border-t border-white/10 px-2 space-y-1.5">
-            <div className="flex items-center justify-between text-[10px] text-zinc-400 font-mono-numbers">
-              <span>00:00</span>
-              <span className="text-broadcast-orange font-bold">Interactive Telemetry Timeline</span>
-              <span>06:00</span>
-            </div>
+          <div className="mt-2 pt-2 border-t border-white/10 px-1 space-y-1 w-64">
             <input
               type="range"
               min={0}
               max={maxTime || 360}
               value={currentTime}
               onChange={(e) => seek(Number(e.target.value))}
-              className="w-full accent-broadcast-orange bg-white/10 rounded-lg h-1.5 cursor-pointer"
+              className="w-full accent-broadcast-orange bg-white/10 rounded h-1 cursor-pointer"
             />
           </div>
         )}

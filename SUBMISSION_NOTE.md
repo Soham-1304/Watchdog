@@ -2,7 +2,7 @@
 
 | Candidate | Role | Demo |
 |---|---|---|
-| Soham Karandikar | Forward Deployed Engineer Intern, Dream Sports / FanCode | *(add deployment URL)* |
+| Soham Karandikar | Forward Deployed Engineer Intern, Dream Sports / FanCode | https://watchdog-frontend-fujvvuz6p-2024sohamk-isuacins-projects.vercel.app |
 
 **Word count:** 200 (submission body; headings and metadata excluded)
 

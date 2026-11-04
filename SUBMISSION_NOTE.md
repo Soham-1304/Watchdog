@@ -2,7 +2,7 @@
 
 | Candidate | Role | GitHub | Live Demo |
 |---|---|---|---|
-| Soham Karandikar | Forward Deployed Engineer Intern, Dream Sports / FanCode | [github.com/Soham-1304/Watchdog](https://github.com/Soham-1304/Watchdog) | [Deployed Demo](https://watchdog-frontend-fujvvuz6p-2024sohamk-isuacins-projects.vercel.app) |
+| Soham Karandikar | Forward Deployed Engineer Intern, Dream Sports / FanCode | [github.com/Soham-1304/Watchdog](https://github.com/Soham-1304/Watchdog) | [Deployed Demo](https://watchdog-frontend.vercel.app/) |
 
 ---
 
@@ -20,6 +20,6 @@ Gemini for narration (optional, with fallbacks), plus Antigravity for developmen
 
 ### Link
 - **GitHub**: https://github.com/Soham-1304/Watchdog
-- **Live Demo**: https://watchdog-frontend-fujvvuz6p-2024sohamk-isuacins-projects.vercel.app
+- **Live Demo**: https://watchdog-frontend.vercel.app/
 
 *(A prototype, not a FanCode integration)*

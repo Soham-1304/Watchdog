@@ -1,23 +1,25 @@
-# Watchdog — 200-Word Project Submission
+# Watchdog: Calmer Multi-Match Viewing for FanCode
 
-| Candidate | Role | Demo |
-|---|---|---|
-| Soham Karandikar | Forward Deployed Engineer Intern, Dream Sports / FanCode | https://watchdog-frontend-fujvvuz6p-2024sohamk-isuacins-projects.vercel.app |
+| Candidate | Role | GitHub | Live Demo |
+|---|---|---|---|
+| Soham Karandikar | Forward Deployed Engineer Intern, Dream Sports / FanCode | [github.com/Soham-1304/Watchdog](https://github.com/Soham-1304/Watchdog) | [Deployed Demo](https://watchdog-frontend-fujvvuz6p-2024sohamk-isuacins-projects.vercel.app) |
 
-**Word count:** 200 (submission body; headings and metadata excluded)
+---
 
-## The problem
+### The problem
+Fans following several matches get an alert for every point, ball and lap. The moments that actually change a contest get buried, and newcomers meet jargon like “break point” or “safety car” with no help.
 
-Watchdog is a multi-match companion concept for FanCode. It helps fans follow concurrent sports without leaving their current stream. Noisy alerts obscure moments that change a contest; Watchdog aims to surface significant events.
+### How it helps
+Watchdog sits beside the stream you’re watching. Each replayed event in tennis, F1 and cricket updates match state and passes a deterministic significance gate. Only qualifying moments trigger a short broadcast-style alert. Explanations appear only when jargon occurs. QuickWatch switches streams, and a catch-up brief summarises what you missed when you return.
 
-## How it works
+### What I built
+I designed the pipeline myself as a multi-agent framework. Separate agents handle event tracking, significance, narration and FactGuard, which checks every generated claim against match data before it’s shown. Offline fixtures keep the demo working without API access.
 
-Replay scripts cover tennis, Formula 1, and cricket. Each event updates its match state and passes through a deterministic significance gate. Qualifying events trigger a concise broadcast-style narrative, while novice explanations appear only when sports jargon occurs. FactGuard checks generated claims against match data. Fixture fallbacks keep the walkthrough usable offline. QuickWatch switches streams, and a catch-up brief summarizes missed events when viewers return.
+### AI tools
+Gemini for narration (optional, with fallbacks), plus Antigravity for development. Stack: React, TypeScript, Vite, FastAPI, Pydantic.
 
-## Implementation
+### Link
+- **GitHub**: https://github.com/Soham-1304/Watchdog
+- **Live Demo**: https://watchdog-frontend-fujvvuz6p-2024sohamk-isuacins-projects.vercel.app
 
-The interface pairs React, TypeScript, and Vite with a FastAPI service using Pydantic schemas and optional Gemini calls. A stepwise event walkthrough keeps context visible without pretending to provide live video. Stream-specific visuals keep scores, alerts, and explanations central.
-
-## Scope
-
-Watchdog is a prototype, not a FanCode production integration. Its normalized event contract provides a starting point for a future live-data adapter. Connecting it requires FanCode telemetry and event access, stream synchronization, production credentials, and operational validation. The project demonstrates how restrained, fact-checked alerts could help viewers stay informed across simultaneous matches while keeping the primary stream central. This supports calmer shared match awareness.
+*(A prototype, not a FanCode integration)*

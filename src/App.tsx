@@ -82,7 +82,7 @@ export default function App() {
         <div className="w-12 h-12 rounded-2xl bg-broadcast-orange flex items-center justify-center text-white font-black text-2xl shadow-2xl shadow-broadcast-orange/40 animate-pulse mb-3">
           F
         </div>
-        <h2 className="text-lg font-bold tracking-tight">Loading FanCode Cutaway...</h2>
+        <h2 className="text-lg font-bold tracking-tight">Loading Watchdog...</h2>
         <p className="text-xs text-zinc-500 mt-1 font-medium">Synchronizing live match feeds</p>
       </div>
     );
@@ -90,7 +90,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#090A0C] text-slate-900 dark:text-[#F4F4F6] flex flex-col justify-between selection:bg-broadcast-orange selection:text-white pb-20 transition-colors duration-200">
-      {/* Authentic FanCode Top Navigation Bar */}
+      {/* Watchdog top navigation */}
       <TopBar />
 
       {/* Main Page Content */}
@@ -100,7 +100,7 @@ export default function App() {
         {currentPage === 'settings' && <SettingsPage />}
       </main>
 
-      {/* FanCode Account, QuickWatch & Cutaway AI Settings Modal */}
+      {/* Account, QuickWatch, and Watchdog settings */}
       <SettingsDrawer />
 
       {/* 3-Step Guided Tour */}
@@ -110,7 +110,7 @@ export default function App() {
       <footer className="border-t border-white/5 py-4 px-6 text-center text-xs text-zinc-500 mt-8">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px]">
           <p>
-            <span className="text-zinc-400 font-bold">FanCode Cutaway</span> · Intelligent live sports companion layer.
+            <span className="text-zinc-400 font-bold">Watchdog</span> · Intelligent live sports companion.
           </p>
           <p className="font-mono-numbers text-zinc-600">
             Real Telemetry: Cricsheet (T20 WC) · FastF1 (Abu Dhabi GP) · Jeff Sackmann (Grand Slam Tennis)

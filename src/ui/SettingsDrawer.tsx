@@ -298,7 +298,7 @@ export function SettingsDrawer() {
                   </div>
                   <div>
                     <h4 className="font-bold text-sm text-white">Soham Karandikar</h4>
-                    <p className="text-xs text-zinc-400">FanCode Pass Active</p>
+                    <p className="text-xs text-zinc-400">Watchdog account</p>
                   </div>
                 </div>
 

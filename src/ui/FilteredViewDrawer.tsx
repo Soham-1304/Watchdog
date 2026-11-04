@@ -73,7 +73,7 @@ export function FilteredViewDrawer() {
         <div className="px-5 py-3.5 bg-amber-500/10 border-b border-amber-500/20 text-xs text-amber-200/90 flex items-start gap-2.5">
           <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
           <span>
-            <strong>FDE Design Principle:</strong> Existing apps spam on every boundary, lap, or routine point. Cutaway’s two-stage gate holds back 70–85%+ of events, firing only on decisive swings (threshold &ge; {threshold}).
+            <strong>FDE Design Principle:</strong> Existing apps spam on every boundary, lap, or routine point. Watchdog’s two-stage gate holds back routine events, surfacing decisive swings (threshold &ge; {threshold}).
           </span>
         </div>
 

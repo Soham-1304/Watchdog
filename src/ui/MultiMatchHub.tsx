@@ -140,7 +140,7 @@ export function MultiMatchHub() {
           <div className="bg-white/5 rounded-2xl p-5 border border-white/10 text-center py-6 text-zinc-400 text-xs">
             <p className="font-semibold text-zinc-300">No stream switches yet</p>
             <p className="text-[11px] text-zinc-500 mt-1">
-              When you switch between live streams, Cutaway generates a 2-sentence rapid catch-up briefing here.
+              When you switch between live streams, Watchdog generates a 2-sentence catch-up briefing here.
             </p>
           </div>
         )}

@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: cutaway-api
+    name: watchdog-api
     runtime: python
     plan: free
     buildCommand: pip install -r backend/requirements.txt

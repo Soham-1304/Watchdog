@@ -8,7 +8,7 @@ import type { CricketState, F1State, MatchEvent, MatchMetadata, TennisState } fr
 
 const DotField = lazy(() => import('./DotField'));
 const Hyperspeed = lazy(() => import('./Hyperspeed'));
-const Topography = lazy(() => import('./Topography'));
+const MagicRings = lazy(() => import('./MagicRings'));
 
 function stateLine(match: MatchMetadata, event?: MatchEvent) {
   if (!event) return { primary: '—', secondary: 'Waiting for the first update' };
@@ -114,25 +114,25 @@ export function NowWatching() {
             </div>
           )}
           {activeMatch.sport === 'cricket' && (
-            <div aria-hidden="true" className="absolute inset-0 z-0">
+            <div aria-hidden="true" className="absolute inset-0 z-0 overflow-hidden bg-[#07090d]">
               <Suspense fallback={null}>
-                <Topography
-                  color="#81c995"
-                  lineCount={20}
-                  lineWidth={0.9}
-                  elevation={0.72}
-                  foreground={0.12}
-                  tilt={32}
-                  speed={0.08}
-                  direction="forward"
-                  morph={0.025}
-                  glow={0.28}
-                  depthOfField={0.35}
-                  fog={0.42}
-                  opacity={0.52}
-                  mouseInteraction={false}
+                <MagicRings
+                  color="#66d89a"
+                  colorTwo="#ff7a31"
+                  motion="breathe"
+                  ringCount={5}
+                  speed={0.45}
+                  lineThickness={1.4}
+                  glow={0.55}
+                  baseRadius={0.26}
+                  radiusStep={0.105}
+                  expansion={0.035}
+                  opacity={0.58}
+                  followMouse={false}
+                  clickBurst={false}
                   intro
-                  dpr={1.5}
+                  theme="dark"
+                  maxDevicePixelRatio={1.5}
                 />
               </Suspense>
             </div>

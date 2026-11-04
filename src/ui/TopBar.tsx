@@ -28,17 +28,17 @@ export function TopBar() {
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 px-3 py-2.5 backdrop-blur-xl transition-colors duration-200 dark:border-white/5 dark:bg-[#08090c]/90 sm:px-4 lg:px-8">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 sm:gap-4">
-        {/* Left: FanCode Logo & Primary Navigation */}
+        {/* Left: Watchdog wordmark and primary navigation */}
         <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-8">
-          {/* FanCode Wordmark Logo */}
+          {/* Watchdog wordmark */}
           <button
             type="button"
             onClick={() => { exitGuidedDemo(); setCurrentPage('home'); }}
-            aria-label="FanCode home"
+            aria-label="Watchdog home"
             className="group shrink-0 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-broadcast-orange"
           >
             <span className="text-lg font-black italic tracking-tighter text-broadcast-orange transition-all drop-shadow-[0_0_12px_rgba(255,82,0,0.2)] group-hover:brightness-110 sm:text-2xl">
-              FANCODE
+              WATCHDOG
             </span>
           </button>
 

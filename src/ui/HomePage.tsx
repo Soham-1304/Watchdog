@@ -271,7 +271,7 @@ export function HomePage() {
     <div className="space-y-11 pb-12 sm:space-y-14">
       <section aria-labelledby="home-feature-title" data-tour="home-feature">
         <div className="relative isolate h-[560px] overflow-hidden rounded-[1.75rem] border border-slate-200 bg-[#08090b] shadow-[0_28px_80px_rgba(13,18,26,0.20)] dark:border-white/10 sm:h-[540px]">
-          <img src={sportArtwork[featuredMatch.sport]} alt="" fetchPriority="high" className="absolute inset-0 h-full w-full object-cover object-center" />
+          <img src={sportArtwork[featuredMatch.sport]} alt="" className="absolute inset-0 h-full w-full object-cover object-center" />
           <div className="absolute inset-0 bg-gradient-to-r from-[#050608] via-[#050608]/85 to-[#050608]/10" aria-hidden="true" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#050608]/75 via-transparent to-black/10" aria-hidden="true" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_18%_50%,rgba(255,82,0,0.12),transparent_44%)]" aria-hidden="true" />
@@ -382,7 +382,7 @@ export function HomePage() {
       <section aria-labelledby="key-moments-title" className="space-y-5" data-tour="home-highlights">
         <div className="flex items-end justify-between gap-4">
           <div>
-            <p className="mb-1.5 text-[10px] font-extrabold uppercase tracking-[0.18em] text-broadcast-orange">Cutaway picks up the signal</p>
+            <p className="mb-1.5 text-[10px] font-extrabold uppercase tracking-[0.18em] text-broadcast-orange">Watchdog picks up the signal</p>
             <h2 id="key-moments-title" className="text-2xl font-black tracking-[-0.04em] text-slate-950 dark:text-white sm:text-3xl">Key moments</h2>
           </div>
           {keyMoments.length > 0 && <span className="pb-1 text-sm font-semibold text-slate-500 dark:text-zinc-400">{keyMoments.length} pivotal updates</span>}

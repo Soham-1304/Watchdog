@@ -415,7 +415,7 @@ export const useReplayStore = create<ReplayStoreState>((set, get) => ({
     // Manage active alert display
     let nextActiveAlert = state.activeAlert;
     if (nextActiveAlert) {
-      // Auto-dismiss alert after 7 seconds of replay time (FanCode native timing)
+      // Auto-dismiss alert after 7 seconds of replay time.
       if (nextT - nextActiveAlert.firedAtClockTime >= 7) {
         nextActiveAlert = null;
       }

@@ -1,5 +1,5 @@
 """
-Cutaway: Enterprise FastAPI Service
+Watchdog: FastAPI Service
 Exposes REST and SSE endpoints for multi-agent evaluation and real-time streaming.
 """
 
@@ -22,7 +22,7 @@ from backend.services.orchestrator import PipelineOrchestrator
 from backend.agents.catchup import generate_catch_up
 
 app = FastAPI(
-    title="Cutaway Sports Intelligence Service",
+    title="Watchdog Sports Intelligence Service",
     version="1.0.0",
     description="Decoupled AI multi-agent service for FanCode live streaming"
 )
@@ -55,7 +55,7 @@ class CatchUpRequest(BaseModel):
 async def health_check():
     return {
         "status": "healthy",
-        "service": "cutaway-intelligence",
+        "service": "watchdog-intelligence",
         "agents": ["SignificanceAgent", "NarrativeAgent", "NoviceAgent", "CatchUpAgent", "FactGuard"]
     }
 

@@ -87,7 +87,7 @@ export function GuidedDemoTour() {
         <div
           aria-hidden="true"
           className="pointer-events-none fixed rounded-[1.3rem] border border-orange-300/85 shadow-[0_0_0_9999px_rgba(3,5,8,.66),0_0_38px_rgba(255,82,0,.16)] transition-[top,left,width,height] duration-300 motion-reduce:transition-none"
-          style={{ top: rect.top - 5, left: rect.left - 5, width: rect.width + 10, height: rect.height + 10 }}
+          style={{ top: rect.top - 7, left: rect.left - 7, width: rect.width + 14, height: rect.height + 14 }}
         />
       )}
 

@@ -1,4 +1,4 @@
-# Cutaway · Multi-Match AI Companion
+# Watchdog · Multi-Match AI Companion
 
 > **Built for FanCode · Dream Sports Forward Deployed Engineer (FDE) Evaluation**  
 > An AI-powered companion layer for live multi-match streaming that watches concurrent broadcasts, alerts fans to decisive turning points with 1-line contextual explanations, enables 1-tap stream switching, and provides a catch-up brief upon return.
@@ -13,9 +13,9 @@ Today, discovering a decisive swing in another match means leaving the player, s
 
 ---
 
-## 2. The Solution: "Cutaway"
+## 2. The Solution: "Watchdog"
 
-Cutaway acts as an intelligent sentinel running in parallel with the live stream:
+Watchdog acts as an intelligent sentinel running in parallel with the live stream:
 1. **Event-Triggered Agent Pipeline:** Scores each event against the current state and up to three earlier events from the same match. The broadcast narrator runs only above the selected significance threshold; the novice explainer runs only for script-tagged jargon. FactGuard checks generated narrative before delivery.
 2. **"Restraint as a Feature" (Filtered View):** Fans can inspect suppressed events (`23 evaluated, 6 alerts, 74% suppressed`) as transparent proof of anti-bloat engineering.
 3. **One-Tap Feed Switching & Catch-Up Card:** Jumps directly to decisive moments in other feeds, and delivers a 2-sentence *"Since you left"* summary when returning to the primary stream.
@@ -27,7 +27,7 @@ Cutaway acts as an intelligent sentinel running in parallel with the live stream
 
 ```
 ┌──────────────────────┐
-│  Source Adapter      │  (ReplayAdapter today / FanCodeLiveAdapter in prod)
+│  Source Adapter      │  (ReplayAdapter today / planned FanCode adapter)
 └──────────┬───────────┘
            │ Normalized MatchEvent { id, match_id, sport, t, type, headline, state }
            ▼
@@ -52,7 +52,7 @@ Cutaway acts as an intelligent sentinel running in parallel with the live stream
            │ Qualified Alerts
            ▼
 ┌──────────────────────┐
-│  FanCode UI Layer    │  (NowWatching player, FeedStrip glow, AlertCard, CatchUpCard)
+│  Watchdog UI Layer    │  (NowWatching player, alert cards, and catch-up card)
 └──────────────────────┘
 ```
 
@@ -138,7 +138,7 @@ http://localhost:5173/?demo=1
 3. **The First Alert (0:45 - 1:15):** At ~0:15 replay time, Latifi crashes in F1. The card slides in with `9/10 PIVOTAL`, the 1-line reason, and the Novice Rule explainer. Tap **"Switch to Stream"** in one tap.
 4. **The Catch-Up (1:15 - 1:45):** Switch back to Tennis. The **Catch-Up Card** appears: *"Since you left (1m 15s ago), Sinner broke Medvedev's serve in Game 6..."*
 5. **Proof of Restraint (1:45 - 2:20):** Click **"Suppressed: 23 ev / 6 al"** in the top bar. Show the evaluator the decoy boundary event (scored 4/10) that was held back to prevent spam.
-6. **The FDE Production Story (2:20 - 3:00):** Show `fancodeAdapter.stub.ts`. Highlight that only the adapter changes when deploying to FanCode's live WebSocket.
+6. **The FDE Production Story (2:20 - 3:00):** Show the planned FanCode adapter boundary. Explain that production integration still needs access to FanCode telemetry, player timing, credentials, and operational validation.
 
 ---
 

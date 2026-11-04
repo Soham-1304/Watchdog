@@ -163,7 +163,7 @@ export function SettingsPage() {
             </p>
             <h1 className="text-4xl font-black tracking-[-0.055em] text-slate-950 dark:text-white sm:text-5xl">Settings</h1>
             <p className="mt-3 max-w-xl text-sm leading-6 text-slate-600 dark:text-zinc-400 sm:text-base">
-              Choose which moments reach you, how much context you want, and which matches Cutaway keeps an eye on.
+              Choose which moments reach you, how much context you want, and which matches Watchdog keeps an eye on.
             </p>
           </div>
           <button

@@ -46,6 +46,15 @@ body {
 }
 
 /* Custom scrollbars for stream timelines & cards */
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;

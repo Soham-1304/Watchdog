@@ -1,70 +1,149 @@
-"""
-Agent 1: Significance & Leverage Scorer (SignificanceAgent)
-Persona: Quantitative Sports Statistician / Win Probability Analyst.
-Evaluates match leverage, game state swings, and score deciders (1-10).
-"""
+"""Agent 1: contextual significance and leverage scoring."""
 
 from backend.models.schemas import MatchEvent, SignificanceOutput
-from backend.agents.llm_client import call_structured_agent
+from backend.agents.llm_client import AgentCallResult, call_structured_agent
+from backend.agents.fixture_alerts import get_fixture_alert
 
 SIGNIFICANCE_SYSTEM_PROMPT = """
-You are the Cutaway Significance & Leverage Scorer for live sports broadcasts.
-Your persona is an objective, quantitative sports statistician (like CricViz / AWS Race Strategy).
+You are FanCode's objective sports significance analyst.
+Score the supplied event from 1 to 10 using the current state and the preceding
+three events from the same match. Judge the game equation, not the event label.
 
-Task:
-Evaluate the given live sports event, its current state, and determine its pivotal significance rating from 1 to 10.
+Scoring guide:
+- 1-3 routine passage: a standard point, lap, single, or ordinary over.
+- 4-6 notable: a useful milestone or modest state change.
+- 7-8 major_swing: a meaningful leverage change, such as a deciding-set break,
+  late wicket, or safety car that compresses a meaningful gap.
+- 9-10 championship_decider: the supplied state shows a direct title/match
+  decision or a major outcome reversal in the closing phase.
 
-Scoring Rubric:
-- 9-10 (championship_decider): Decides or directly flips the match, race, or tournament (e.g. final-over wicket of set batter, lead change on final lap, championship match point, late red flag).
-- 7-8 (major_swing): Major swing in momentum or win-probability (e.g. break of serve in deciding set, safety car that wipes out a 12s lead, set batter falling in death overs).
-- 4-6 (notable): Notable boundary, routine milestone, or standard pit stop that advances play without flipping the outcome.
-- 1-3 (routine): Routine passage of play (regular hold, single run, lap completion).
-
-Rule: Context matters above all. A boundary in Over 4 is 4/10; a boundary in Over 20 needing 8 off 2 balls is 7/10.
-Return strictly JSON matching the SignificanceOutput schema.
+Return exactly the requested fields. `state_delta_summary` must be factual,
+under 80 characters, and use only the supplied state or a direct comparison to
+the preceding events. Do not infer win probability or claim an outcome that the
+event state does not show. Confidence reflects how directly the data supports
+the rating. Output JSON only.
 """
 
-async def evaluate_significance(event: MatchEvent) -> SignificanceOutput:
-    """Invokes SignificanceAgent to produce 1-10 rating and leverage category."""
-    prompt = f"""
-Event ID: {event.id}
-Sport: {event.sport}
-Type: {event.type}
-Headline: {event.headline}
-Actors: {', '.join(event.actors)}
-Game State: {event.state}
 
-Calculate importance score (1-10), leverage category, and a concise state delta summary.
-"""
-    # Deterministic fallback data based on sport heuristics
-    fallback_score = 5
-    leverage_cat = "notable"
-    delta = "Match play advanced"
+def _fallback(event: MatchEvent, preceding_events: list[MatchEvent]) -> dict:
+    fixture_alert = get_fixture_alert(event.id)
+    state = event.state if isinstance(event.state, dict) else event.state.model_dump()
+    previous = preceding_events[-1] if preceding_events else None
 
-    if event.type in ["match_point", "set_end", "lead_change", "innings_end"]:
-        fallback_score = 10
-        leverage_cat = "championship_decider"
-        delta = "Championship deciding event reached"
-    elif event.type in ["safety_car", "break", "wicket"]:
-        fallback_score = 8
-        leverage_cat = "major_swing"
-        delta = "Major momentum swing in contest"
-    elif event.type in ["boundary", "break_point", "pit_stop"]:
-        fallback_score = 7
-        leverage_cat = "major_swing"
-        delta = "High leverage opportunity created"
+    if event.sport == "cricket":
+        score = int(state.get("score", 0))
+        wickets = int(state.get("wickets", 0))
+        overs = float(state.get("overs", 0))
+        target = state.get("target")
+        runs_needed = max(0, int(target) - score) if target is not None else None
+        if event.type == "innings_end":
+            score_value = 10
+        elif event.type == "wicket":
+            score_value = 9 if overs >= 16 or wickets >= 6 else 7
+        elif event.type in {"boundary", "six"}:
+            score_value = 9 if runs_needed is not None and runs_needed <= 12 and overs >= 19 else (7 if overs >= 15 else 5)
+        else:
+            score_value = 3
+        delta = f"{state.get('battingTeam', 'Batting side')} {score}/{wickets} ({overs} ov)"
+        if runs_needed is not None:
+            delta += f"; {runs_needed} to win"
+    elif event.sport == "f1":
+        lap = int(state.get("lap", 0))
+        total_laps = int(state.get("totalLaps", 0))
+        leader = str(state.get("leader", "Leader"))
+        standings = state.get("standings", [])
+        winner_shown = any(
+            isinstance(item, dict) and item.get("gap") == "WINNER"
+            for item in standings
+        )
+        if event.type == "lead_change" and lap >= total_laps:
+            score_value = 10
+        elif event.type == "lap" and lap >= total_laps and (winner_shown or "wins" in event.headline.lower()):
+            score_value = 10
+        elif event.type == "safety_car" and lap >= total_laps - 6:
+            score_value = 9
+        elif event.type in {"safety_car", "pit_stop", "incident"}:
+            score_value = 7 if lap >= total_laps - 10 else 5
+        else:
+            score_value = 3
+        delta = f"{leader} leads; lap {lap}/{total_laps}; {str(state.get('status', 'GREEN')).replace('_', ' ')}"
+    else:
+        state = state if isinstance(state, dict) else event.state.model_dump()
+        game_score = str(state.get("gameScore", ""))
+        current_set = int(state.get("currentSet", 1))
+        player1 = state.get("player1", {}).get("setsWon", 0)
+        player2 = state.get("player2", {}).get("setsWon", 0)
+        if event.type == "match_point" or state.get("isMatchPoint"):
+            score_value = 10
+        elif event.type == "set_point" or state.get("isSetPoint"):
+            score_value = 9
+        elif event.type == "break":
+            score_value = 8 if current_set == 5 else 7
+        elif event.type == "break_point" or state.get("isBreakPoint"):
+            score_value = 7
+        elif event.type == "set_end" and max(player1, player2) >= 3:
+            score_value = 10
+        elif event.type == "set_end":
+            score_value = 8
+        else:
+            score_value = 3
+        delta = f"{player1}-{player2} sets; Set {current_set}, {game_score}"
 
-    fallback = {
+    if previous:
+        prior_state = previous.state if isinstance(previous.state, dict) else previous.state.model_dump()
+        if event.sport == "cricket" and previous.sport == "cricket":
+            runs = int(state.get("score", 0)) - int(prior_state.get("score", 0))
+            wickets = int(state.get("wickets", 0)) - int(prior_state.get("wickets", 0))
+            change = f"{wickets} wicket(s) lost" if wickets > 0 else f"{runs:+d} runs"
+            delta = f"{change}; {delta}"
+        elif event.sport == "f1" and previous.sport == "f1" and prior_state.get("leader") != state.get("leader"):
+            delta = f"Lead changes to {state.get('leader')}; lap {state.get('lap')}/{state.get('totalLaps')}"
+
+    score_value = int(fixture_alert.get("importance", score_value)) if fixture_alert else score_value
+
+    if score_value >= 9 and event.type in {"match_point", "set_point", "set_end", "innings_end", "lead_change", "lap"}:
+        category = "championship_decider"
+    elif score_value >= 7:
+        category = "major_swing"
+    elif score_value >= 4:
+        category = "notable"
+    else:
+        category = "routine"
+
+    return {
         "event_id": event.id,
-        "importance_score": fallback_score,
-        "leverage_category": leverage_cat,
-        "state_delta_summary": delta,
-        "confidence": 0.95
+        "importance_score": score_value,
+        "leverage_category": category,
+        "state_delta_summary": delta[:80],
+        "confidence": 0.66,
     }
+
+
+async def evaluate_significance(
+    event: MatchEvent,
+    preceding_events: list[MatchEvent] | None = None,
+) -> AgentCallResult[SignificanceOutput]:
+    """Scores an event using only its state and up to three earlier same-match events."""
+    history = (preceding_events or [])[-3:]
+    prior_context = [
+        {"t": item.t, "type": item.type, "headline": item.headline, "state": item.state.model_dump() if not isinstance(item.state, dict) else item.state}
+        for item in history
+    ]
+    prompt = f"""
+Current event:
+{event.model_dump_json(exclude={"state"} )}
+Current state:
+{event.state.model_dump_json() if not isinstance(event.state, dict) else event.state}
+Preceding events from this match (oldest first; at most three):
+{prior_context}
+
+Rate this event and describe the factual state delta. Do not include a player,
+number, or result that is absent from these inputs.
+"""
 
     return await call_structured_agent(
         system_instruction=SIGNIFICANCE_SYSTEM_PROMPT,
         prompt=prompt,
         response_schema=SignificanceOutput,
-        fallback_data=fallback
+        fallback_data=_fallback(event, history),
     )

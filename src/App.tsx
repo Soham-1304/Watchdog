@@ -5,8 +5,6 @@ import { TopBar } from './ui/TopBar';
 import { HomePage } from './ui/HomePage';
 import { NowWatching } from './ui/NowWatching';
 import { SettingsPage } from './ui/SettingsPage';
-import { AlertCard } from './ui/AlertCard';
-import { ReplayControlsPill } from './ui/ReplayControlsPill';
 import { SettingsDrawer } from './ui/SettingsDrawer';
 import { GuidedDemoTour } from './ui/GuidedDemoTour';
 
@@ -16,6 +14,7 @@ export default function App() {
   const currentPage = useReplayStore((s) => s.currentPage);
   const theme = useReplayStore((s) => s.theme);
   const togglePlay = useReplayStore((s) => s.togglePlay);
+  const play = useReplayStore((s) => s.play);
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
@@ -26,6 +25,7 @@ export default function App() {
   const setSettingsDrawerOpen = useReplayStore((s) => s.setSettingsDrawerOpen);
   const setCurrentPage = useReplayStore((s) => s.setCurrentPage);
   const startGuidedDemo = useReplayStore((s) => s.startGuidedDemo);
+  const exitGuidedDemo = useReplayStore((s) => s.exitGuidedDemo);
 
   // Run the replay clock animation loop
   useClockEngine();
@@ -34,7 +34,7 @@ export default function App() {
   useEffect(() => {
     initialize().then(() => {
       const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('demo') === '1') {
+      if (urlParams.get('demo') !== '0') {
         startGuidedDemo();
       }
     });
@@ -47,27 +47,34 @@ export default function App() {
         return;
       }
 
-      if (e.code === 'Space') {
+      if (e.code === 'Space' && currentPage === 'match' && !(e.target instanceof HTMLElement && e.target.closest('button, a'))) {
         e.preventDefault();
         togglePlay();
       } else if (e.key === 'Escape') {
         dismissAlert();
         setSettingsDrawerOpen(false);
+        exitGuidedDemo();
       } else if (e.key === '1' && matches[0]) {
+        exitGuidedDemo();
         switchMatch(matches[0].id);
         setCurrentPage('match');
+        play();
       } else if (e.key === '2' && matches[1]) {
+        exitGuidedDemo();
         switchMatch(matches[1].id);
         setCurrentPage('match');
+        play();
       } else if (e.key === '3' && matches[2]) {
+        exitGuidedDemo();
         switchMatch(matches[2].id);
         setCurrentPage('match');
+        play();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [togglePlay, dismissAlert, setSettingsDrawerOpen, matches, switchMatch, setCurrentPage]);
+  }, [togglePlay, play, currentPage, dismissAlert, setSettingsDrawerOpen, exitGuidedDemo, matches, switchMatch, setCurrentPage]);
 
   if (!isLoaded) {
     return (
@@ -87,17 +94,11 @@ export default function App() {
       <TopBar />
 
       {/* Main Page Content */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-5 lg:p-6">
+      <main className={`mx-auto w-full flex-1 ${currentPage === 'home' ? 'max-w-[2400px] px-4 py-4 sm:px-7 sm:py-6 xl:px-10 xl:py-7' : 'max-w-7xl p-3 sm:p-5 lg:p-6'}`}>
         {currentPage === 'home' && <HomePage />}
         {currentPage === 'match' && <NowWatching />}
         {currentPage === 'settings' && <SettingsPage />}
       </main>
-
-      {/* Floating 7-Second Pivotal Moment Alert Card (Only on stream/match page) */}
-      {currentPage === 'match' && <AlertCard />}
-
-      {/* Sleek Floating Simulation Replay Controller Pill */}
-      <ReplayControlsPill />
 
       {/* FanCode Account, QuickWatch & Cutaway AI Settings Modal */}
       <SettingsDrawer />

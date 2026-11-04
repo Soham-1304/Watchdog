@@ -5,13 +5,19 @@ Exposes REST and SSE endpoints for multi-agent evaluation and real-time streamin
 
 import json
 import asyncio
+import os
 from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
-from backend.models.schemas import MatchEvent, EnrichedAlert, CatchUpOutput
+from backend.models.schemas import (
+    CatchUpOutput,
+    EventEvaluationRequest,
+    EventEvaluationResponse,
+    MatchEvent,
+)
 from backend.services.orchestrator import PipelineOrchestrator
 from backend.agents.catchup import generate_catch_up
 
@@ -22,10 +28,19 @@ app = FastAPI(
 )
 
 # Enable CORS for local Vite development and production origins
+frontend_origins = [
+    origin.strip().rstrip("/")
+    for origin in os.getenv(
+        "FRONTEND_ORIGINS",
+        "http://localhost:5173,http://127.0.0.1:5173",
+    ).split(",")
+    if origin.strip()
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=frontend_origins,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -44,17 +59,11 @@ async def health_check():
         "agents": ["SignificanceAgent", "NarrativeAgent", "NoviceAgent", "CatchUpAgent", "FactGuard"]
     }
 
-@app.post("/api/v1/evaluate")
-async def evaluate_event(event: MatchEvent):
-    """Evaluates an incoming match event through the multi-agent pipeline."""
+@app.post("/api/v1/evaluate", response_model=EventEvaluationResponse)
+async def evaluate_event(request: EventEvaluationRequest):
+    """Runs the event-triggered agent pipeline for one replay step."""
     try:
-        alert, suppression_reason = await PipelineOrchestrator.process_event(event)
-        return {
-            "event_id": event.id,
-            "qualified": alert is not None,
-            "alert": alert,
-            "suppression_reason": suppression_reason
-        }
+        return await PipelineOrchestrator.process_event(request)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

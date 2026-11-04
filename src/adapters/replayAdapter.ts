@@ -1,7 +1,8 @@
-import { MatchEvent, MatchMetadata, ScoredAlert } from '../types';
+import { MatchEvent, MatchMetadata, ReplayScript, ScheduledReplayEvent, ScoredAlert } from '../types';
 
 export class ReplayAdapter {
   private metadata: MatchMetadata[] = [];
+  private scripts: ReplayScript[] = [];
   private events: MatchEvent[] = [];
   private alerts: Record<string, ScoredAlert> = {};
   private isLoaded = false;
@@ -24,8 +25,21 @@ export class ReplayAdapter {
       const tenEvents: MatchEvent[] = await tenRes.json();
       this.alerts = await alertsRes.json();
 
-      // Combine and strictly sort by time t
-      this.events = [...cricEvents, ...f1Events, ...tenEvents].sort((a, b) => a.t - b.t);
+      // Each fixture remains an independent sport script. `t` is shared across
+      // those scripts so the walkthrough has one deliberate cross-sport order.
+      this.scripts = [cricEvents, f1Events, tenEvents].map((scriptEvents) => {
+        const orderedEvents = [...scriptEvents].sort((a, b) => a.t - b.t);
+        const firstEvent = orderedEvents[0];
+        return {
+          matchId: firstEvent?.match_id ?? '',
+          sport: firstEvent?.sport ?? 'tennis',
+          events: orderedEvents,
+        };
+      });
+
+      // Stable tie-breakers keep fixtures deterministic if two events share a time.
+      this.events = this.scripts.flatMap((script) => script.events)
+        .sort((a, b) => a.t - b.t || a.id.localeCompare(b.id));
       this.isLoaded = true;
     } catch (err) {
       console.error('[ReplayAdapter] Failed to load replay fixtures:', err);
@@ -43,6 +57,18 @@ export class ReplayAdapter {
 
   public getAllEvents(): MatchEvent[] {
     return this.events;
+  }
+
+  public getScripts(): ReplayScript[] {
+    return this.scripts;
+  }
+
+  public getScript(matchId: string): ReplayScript | undefined {
+    return this.scripts.find((script) => script.matchId === matchId);
+  }
+
+  public getScheduledEvents(): ScheduledReplayEvent[] {
+    return this.events.map((event, index) => ({ ...event, sequence: index + 1 }));
   }
 
   public getEventsForMatch(matchId: string): MatchEvent[] {

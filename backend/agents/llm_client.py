@@ -6,7 +6,8 @@ Calls Gemini API with structured JSON schema output and fallback handling.
 import os
 import json
 import httpx
-from typing import Type, TypeVar, Optional, Any
+from dataclasses import dataclass
+from typing import Generic, Literal, Type, TypeVar, Optional, Any
 from pydantic import BaseModel
 from dotenv import load_dotenv
 
@@ -17,20 +18,26 @@ T = TypeVar("T", bound=BaseModel)
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent"
 
+
+@dataclass(frozen=True)
+class AgentCallResult(Generic[T]):
+    output: T
+    source: Literal["live_agent_mesh", "deterministic_fallback"]
+
 async def call_structured_agent(
     system_instruction: str,
     prompt: str,
     response_schema: Type[T],
     fallback_data: Optional[dict[str, Any]] = None,
     timeout_seconds: float = 12.0
-) -> T:
+) -> AgentCallResult[T]:
     """
     Invokes Gemini with strict JSON schema compliance and validates with Pydantic.
     Falls back gracefully if the API is offline or key is unset.
     """
     if not GEMINI_API_KEY:
         if fallback_data:
-            return response_schema.model_validate(fallback_data)
+            return AgentCallResult(response_schema.model_validate(fallback_data), "deterministic_fallback")
         raise ValueError("GEMINI_API_KEY is not set and no fallback data provided.")
 
     headers = {"Content-Type": "application/json"}
@@ -61,9 +68,9 @@ async def call_structured_agent(
             result = resp.json()
             raw_text = result["candidates"][0]["content"]["parts"][0]["text"]
             parsed_json = json.loads(raw_text)
-            return response_schema.model_validate(parsed_json)
+            return AgentCallResult(response_schema.model_validate(parsed_json), "live_agent_mesh")
     except Exception as e:
         print(f"[Cutaway LLM Client] Call failed or timed out ({e}). Falling back to deterministic output.")
         if fallback_data:
-            return response_schema.model_validate(fallback_data)
+            return AgentCallResult(response_schema.model_validate(fallback_data), "deterministic_fallback")
         raise e

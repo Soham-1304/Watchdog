@@ -1,170 +1,68 @@
-import { useState, useRef, useEffect } from 'react';
-import { ArrowRight, X, Pin, Hand } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useEffect } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { ArrowRight, Flame } from 'lucide-react';
 import { useReplayStore } from '../store/useReplayStore';
 
 export function AlertCard() {
   const activeAlert = useReplayStore((s) => s.activeAlert);
+  const activeCatchUp = useReplayStore((s) => s.activeCatchUp);
+  const activeMatchId = useReplayStore((s) => s.activeMatchId);
   const settings = useReplayStore((s) => s.settings);
+  const matches = useReplayStore((s) => s.matches);
   const dismissAlert = useReplayStore((s) => s.dismissAlert);
   const switchMatch = useReplayStore((s) => s.switchMatch);
   const setCurrentPage = useReplayStore((s) => s.setCurrentPage);
-
-  const [isHovered, setIsHovered] = useState(false);
-  const [holdProgress, setHoldProgress] = useState(0);
-  const holdTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const holdStartTimeRef = useRef<number | null>(null);
+  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
-    return () => {
-      if (holdTimerRef.current) clearInterval(holdTimerRef.current);
-    };
-  }, []);
+    if (!activeAlert) return;
+    const timeout = window.setTimeout(dismissAlert, 7000);
+    return () => window.clearTimeout(timeout);
+  }, [activeAlert?.event.id, dismissAlert]);
 
-  useEffect(() => {
-    setHoldProgress(0);
-    if (holdTimerRef.current) clearInterval(holdTimerRef.current);
-  }, [activeAlert?.event?.id]);
-
-  if (!activeAlert) return null;
+  const target = activeAlert && matches.find((match) => match.id === activeAlert.event.match_id);
+  const isOtherStream = activeAlert?.event.match_id !== activeMatchId;
+  const headline = activeAlert && (settings.narrativeAgentEnabled ? activeAlert.alert : activeAlert.event.headline);
+  const showToast = Boolean(activeAlert && target && isOtherStream && !activeCatchUp);
 
   const handleSwitch = () => {
+    if (!activeAlert) return;
     switchMatch(activeAlert.event.match_id);
     setCurrentPage('match');
     dismissAlert();
   };
 
-  const startHold = () => {
-    holdStartTimeRef.current = Date.now();
-    holdTimerRef.current = setInterval(() => {
-      if (!holdStartTimeRef.current) return;
-      const elapsed = Date.now() - holdStartTimeRef.current;
-      const progress = Math.min(100, (elapsed / 900) * 100);
-      setHoldProgress(progress);
-
-      if (progress >= 100) {
-        if (holdTimerRef.current) clearInterval(holdTimerRef.current);
-        handleSwitch();
-      }
-    }, 16);
-  };
-
-  const endHold = () => {
-    if (holdTimerRef.current) {
-      clearInterval(holdTimerRef.current);
-      holdTimerRef.current = null;
-    }
-    holdStartTimeRef.current = null;
-    setHoldProgress(0);
-  };
-
-  const sport = activeAlert.event.sport;
-
   return (
     <AnimatePresence>
-      <motion.div
-        initial={{ y: 50, opacity: 0, scale: 0.95 }}
-        animate={{ y: 0, opacity: 1, scale: 1 }}
-        exit={{ y: 40, opacity: 0, scale: 0.95 }}
-        transition={{ type: 'spring', stiffness: 400, damping: 28 }}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => {
-          setIsHovered(false);
-          endHold();
-        }}
-        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-[320px] select-none"
-      >
-        <div className="bg-white/95 dark:bg-[#0c0e14]/95 backdrop-blur-xl border border-slate-200 dark:border-white/15 rounded-2xl p-3.5 shadow-2xl relative overflow-hidden ring-1 ring-black/5 dark:ring-white/10">
-          {/* Top Bar: Badges + Dismiss */}
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-100 dark:bg-white/10 text-slate-800 dark:text-zinc-200 border border-slate-200 dark:border-white/10">
-                {sport}
-              </span>
-
-              <span className="px-2 py-0.5 rounded-md font-black text-[10px] font-mono-numbers bg-broadcast-orange/15 text-broadcast-orange border border-broadcast-orange/30">
-                {activeAlert.effectiveScore}/10
-              </span>
-
-              {activeAlert.isPinnedBoost && (
-                <span className="text-[10px] font-bold text-amber-500 flex items-center gap-0.5">
-                  <Pin className="w-2.5 h-2.5 fill-current" />
-                  +2
-                </span>
-              )}
-            </div>
-
+      {showToast && activeAlert && headline && (
+        <motion.aside
+          key={activeAlert.event.id}
+          data-tour="stream-switch-cue"
+          role="status"
+          aria-label="QuickWatch match update"
+          aria-live="polite"
+          initial={reduceMotion ? { opacity: 0 } : { x: 16, y: 18, opacity: 0 }}
+          animate={{ x: 0, y: 0, opacity: 1 }}
+          exit={reduceMotion ? { opacity: 0 } : { x: 12, y: 12, opacity: 0 }}
+          transition={{ duration: reduceMotion ? 0.12 : 0.24, ease: [0.2, 0.8, 0.2, 1] }}
+          className="absolute bottom-4 right-4 z-50 w-[min(440px,calc(100%-2rem))]"
+        >
+          <div className="flex items-center gap-2.5 rounded-2xl border border-white/[0.12] bg-[#0b0f14]/78 px-3 py-3 text-white shadow-[0_14px_42px_rgba(0,0,0,.36)] backdrop-blur-2xl sm:gap-3 sm:px-3.5">
+            <span className="inline-flex h-8 shrink-0 items-center gap-1 rounded-full border border-orange-300/20 bg-gradient-to-br from-orange-300/15 to-red-500/[0.06] px-2 text-xs font-extrabold text-orange-100" aria-label={`Hotness ${activeAlert.effectiveScore}`}>
+              <Flame aria-hidden="true" size={13} className="text-orange-300" />{activeAlert.effectiveScore}
+            </span>
+            <p className="min-w-0 flex-1 line-clamp-2 text-[12px] font-semibold leading-[1.35] text-white/95 sm:text-[13px]">{headline}</p>
             <button
-              onClick={dismissAlert}
-              className="text-slate-400 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
-              title="Dismiss"
+              type="button"
+              onClick={handleSwitch}
+              aria-label={`Switch to ${target?.title ?? 'this match'}`}
+              className="inline-flex h-9 shrink-0 items-center gap-1 rounded-xl border border-orange-300/20 bg-orange-300/[0.08] px-3 text-[11px] font-extrabold text-orange-200 transition-colors hover:bg-orange-300/[0.14] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300/80 motion-reduce:transition-none"
             >
-              <X className="w-3.5 h-3.5" />
+              Switch <ArrowRight aria-hidden="true" size={13} />
             </button>
           </div>
-
-          {/* Headline */}
-          <h4 className="text-xs sm:text-[13px] font-black text-slate-900 dark:text-white leading-snug tracking-tight mb-1">
-            {activeAlert.alert}
-          </h4>
-
-          {/* Tactical Context */}
-          <p className="text-[11px] text-slate-600 dark:text-zinc-300 leading-snug font-medium mb-2.5 line-clamp-2">
-            {activeAlert.why}
-          </p>
-
-          {/* Optional Novice Explainer */}
-          {settings.novice && activeAlert.novice_note && (
-            <div className="mb-2.5 p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[10px] text-amber-700 dark:text-amber-300 flex items-start gap-1.5">
-              <span className="font-bold uppercase text-[9px] shrink-0 text-amber-600 dark:text-amber-400">Rule:</span>
-              <span className="line-clamp-2">{activeAlert.novice_note}</span>
-            </div>
-          )}
-
-          {/* Actions: Stay + Hold-to-Switch */}
-          <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-100 dark:border-white/10">
-            <button
-              onClick={dismissAlert}
-              className="text-[11px] font-bold text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
-            >
-              Stay
-            </button>
-
-            <button
-              onMouseDown={startHold}
-              onMouseUp={endHold}
-              onTouchStart={startHold}
-              onTouchEnd={endHold}
-              onTouchCancel={endHold}
-              onClick={() => {
-                if (holdProgress < 10) handleSwitch();
-              }}
-              className="relative overflow-hidden flex items-center gap-1.5 px-3.5 py-1.5 bg-broadcast-orange hover:bg-broadcast-orangeHover text-white rounded-xl text-xs font-black transition-all shadow-md shadow-broadcast-orange/30 active:scale-95"
-            >
-              {/* Hold fill progress indicator */}
-              {holdProgress > 0 && (
-                <div
-                  className="absolute inset-0 bg-white/35 transition-all pointer-events-none"
-                  style={{ width: `${holdProgress}%` }}
-                />
-              )}
-
-              <Hand className="w-3 h-3 sm:hidden" />
-              <span className="relative z-10">
-                {holdProgress > 0 ? `Holding ${Math.round(holdProgress)}%...` : 'HOLD TO SWITCH'}
-              </span>
-              <ArrowRight className="w-3.5 h-3.5 relative z-10" />
-            </button>
-          </div>
-
-          {/* 7-Second Auto Dismiss Indicator Bar */}
-          {!isHovered && (
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-slate-100 dark:bg-white/10 overflow-hidden">
-              <div className="h-full bg-broadcast-orange animate-shrink-width origin-left" />
-            </div>
-          )}
-        </div>
-      </motion.div>
+        </motion.aside>
+      )}
     </AnimatePresence>
   );
 }

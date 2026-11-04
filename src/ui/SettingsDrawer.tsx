@@ -103,15 +103,19 @@ export function SettingsDrawer() {
           {/* TAB 1: SMART ALERTS */}
           {settingsTab === 'cutaway' && (
             <div className="space-y-6 animate-ticker-slide">
-              {/* Master Alert Switch */}
+              {/* Cue delivery switch; agent controls live on the main Settings page. */}
               <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white/5 border border-white/5">
                 <div>
-                  <h4 className="font-bold text-sm text-white">Live Turning Point Alerts</h4>
+                  <h4 className="font-bold text-sm text-white">In-stream cue overlays</h4>
                   <p className="text-xs text-zinc-400 mt-0.5">
-                    Show non-intrusive 7s overlays when key moments occur
+                    Show or hide alerts here. AI agent controls are in Settings.
                   </p>
                 </div>
                 <button
+                  type="button"
+                  role="switch"
+                  aria-checked={settings.enabled}
+                  aria-label="Show in-stream cue overlays"
                   onClick={() => updateSettings({ enabled: !settings.enabled })}
                   className={`w-11 h-6 rounded-full transition-colors p-0.5 shadow-inner ${
                     settings.enabled ? 'bg-broadcast-orange' : 'bg-zinc-700'

@@ -6,17 +6,20 @@ import {
   UserSettings,
   SuppressedEvent,
   CatchUpSummary,
+  EventPipelineResult,
 } from '../types';
 import { replayAdapter } from '../adapters/replayAdapter';
-import { evaluateRulesGate } from '../engine/rulesGate';
 import { evaluateAlertFilter } from '../engine/filters';
 import { generateCatchUpSummary } from '../engine/catchup';
+import { processReplayEvent, toScoredAlert } from '../engine/eventPipeline';
+import { evaluateReplayEvent } from '../ai/scorer';
 
 export interface ActiveAlertData extends ScoredAlert {
   event: MatchEvent;
   effectiveScore: number;
   isPinnedBoost: boolean;
   firedAtClockTime: number;
+  source?: 'live_agent_mesh' | 'fixture_mock' | 'deterministic_fallback';
 }
 
 interface ReplayStoreState {
@@ -25,6 +28,7 @@ interface ReplayStoreState {
   matches: MatchMetadata[];
   events: MatchEvent[];
   alerts: Record<string, ScoredAlert>;
+  eventResults: Record<string, EventPipelineResult>;
 
   // Clock
   currentTime: number;
@@ -74,6 +78,7 @@ interface ReplayStoreState {
   setSpeed: (speed: 1 | 5 | 10 | 20) => void;
   seek: (t: number) => void;
   restart: () => void;
+  stepNext: () => void;
   tick: (deltaSeconds: number) => void;
   switchMatch: (matchId: string) => void;
   dismissAlert: () => void;
@@ -88,14 +93,59 @@ interface ReplayStoreState {
   exitGuidedDemo: () => void;
 }
 
+const PREFERENCES_STORAGE_KEY = 'fancode-cutaway-preferences-v1';
+
+type SavedPreferences = {
+  theme?: 'dark' | 'light';
+  quickWatchList?: string[];
+  settings?: Partial<UserSettings>;
+};
+
+const readSavedPreferences = (): SavedPreferences => {
+  if (typeof window === 'undefined') return {};
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(PREFERENCES_STORAGE_KEY) || '{}') as SavedPreferences;
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
+  }
+};
+
+const savePreferences = (preferences: SavedPreferences) => {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify(preferences));
+  } catch {
+    // The app remains usable when browser storage is unavailable.
+  }
+};
+
+const savedPreferences = readSavedPreferences();
+const defaultSettings: UserSettings = {
+  enabled: true,
+  significanceAgentEnabled: true,
+  narrativeAgentEnabled: true,
+  contentDepth: 'tactical',
+  audienceMode: 'novice',
+  alertStyle: 'card',
+  pins: {
+    sports: ['tennis', 'f1', 'cricket'],
+    players: ['Sinner', 'Verstappen', 'Kohli'],
+  },
+  threshold: 7,
+  delaySeconds: 0,
+  novice: true,
+};
+
 export const useReplayStore = create<ReplayStoreState>((set, get) => ({
   isLoaded: false,
   matches: [],
   events: [],
   alerts: {},
+  eventResults: {},
 
   currentTime: 0,
-  isPlaying: true,
+  isPlaying: false,
   speed: 1,
   maxTime: 360,
 
@@ -109,27 +159,20 @@ export const useReplayStore = create<ReplayStoreState>((set, get) => ({
   delayedAlertQueue: [],
 
   settings: {
-    enabled: true,
-    contentDepth: 'tactical',
-    audienceMode: 'novice',
-    alertStyle: 'card',
-    pins: {
-      sports: ['tennis', 'f1', 'cricket'],
-      players: ['Sinner', 'Verstappen', 'Kohli'],
-    },
-    threshold: 7,
-    delaySeconds: 0,
-    novice: true,
-    liveAI: false,
+    ...defaultSettings,
+    ...savedPreferences.settings,
+    pins: { ...defaultSettings.pins, ...savedPreferences.settings?.pins },
   },
 
   suppressedEvents: [],
   totalEvaluatedCount: 0,
   totalAlertsCount: 0,
 
-  theme: 'dark',
+  theme: savedPreferences.theme === 'light' ? 'light' : 'dark',
   currentPage: 'home',
-  quickWatchList: ['match-cricket-t20wc24', 'match-f1-abudhabi21', 'match-tennis-ao24'],
+  quickWatchList: Array.isArray(savedPreferences.quickWatchList)
+    ? savedPreferences.quickWatchList
+    : ['match-cricket-t20wc24', 'match-f1-abudhabi21', 'match-tennis-ao24'],
   settingsTab: 'cutaway',
   isFilteredDrawerOpen: false,
   isSettingsDrawerOpen: false,
@@ -143,6 +186,7 @@ export const useReplayStore = create<ReplayStoreState>((set, get) => ({
       document.documentElement.classList.toggle('dark', next === 'dark');
     }
     set({ theme: next });
+    savePreferences({ settings: get().settings, quickWatchList: get().quickWatchList, theme: next });
   },
   setCurrentPage: (page) => set({ currentPage: page }),
   toggleQuickWatch: (matchId) => {
@@ -151,6 +195,7 @@ export const useReplayStore = create<ReplayStoreState>((set, get) => ({
       ? current.filter((id) => id !== matchId)
       : [...current, matchId];
     set({ quickWatchList: next });
+    savePreferences({ settings: get().settings, quickWatchList: next, theme: get().theme });
   },
   setSettingsTab: (tab) => set({ settingsTab: tab }),
 
@@ -164,10 +209,11 @@ export const useReplayStore = create<ReplayStoreState>((set, get) => ({
 
     set({
       isLoaded: true,
-      isPlaying: true,
+      isPlaying: false,
       matches,
       events,
       alerts,
+      eventResults: {},
       maxTime,
       activeMatchId: matches[0]?.id || 'match-tennis-ao24',
       lastVisitedT: {
@@ -196,17 +242,31 @@ export const useReplayStore = create<ReplayStoreState>((set, get) => ({
     const defaultMatchId = matches[0]?.id || 'match-tennis-ao24';
     set({
       currentTime: 0,
-      isPlaying: true,
+      isPlaying: false,
       activeAlert: null,
       alertQueue: [],
       delayedAlertQueue: [],
       firedEventIds: new Set<string>(),
+      eventResults: {},
       suppressedEvents: [],
       totalEvaluatedCount: 0,
       totalAlertsCount: 0,
       activeCatchUp: null,
       lastVisitedT: { [defaultMatchId]: 0 },
     });
+  },
+
+  stepNext: () => {
+    const state = get();
+    if (!state.isLoaded) return;
+    const nextEvent = state.events.find((event) => !state.firedEventIds.has(event.id));
+    if (!nextEvent) return;
+
+    // Reuse the same deterministic/AI pipeline as timed playback, but move
+    // exactly to one script event and immediately stop the clock again.
+    set({ isPlaying: true });
+    get().tick(Math.max(0.001, nextEvent.t - state.currentTime));
+    set({ isPlaying: false, currentTime: nextEvent.t });
   },
 
   tick: (deltaSeconds) => {
@@ -227,35 +287,53 @@ export const useReplayStore = create<ReplayStoreState>((set, get) => ({
 
     const newFiredIds = new Set(state.firedEventIds);
     const newSuppressed = [...state.suppressedEvents];
+    const newEventResults = { ...state.eventResults };
     let newTotalEvaluated = state.totalEvaluatedCount;
     let newTotalAlerts = state.totalAlertsCount;
     const newAlertsQueue = [...state.alertQueue];
     const newDelayedQueue = [...state.delayedAlertQueue];
+    const pendingEvaluations: {
+      event: MatchEvent;
+      precedingEvents: MatchEvent[];
+      activeMatchId: string;
+      quickWatchList: string[];
+      settings: UserSettings;
+    }[] = [];
 
     for (const event of currentEvents) {
       if (newFiredIds.has(event.id)) continue;
       newFiredIds.add(event.id);
       newTotalEvaluated++;
 
-      // 1. Rules Gate
-      const gate = evaluateRulesGate(event);
-      if (!gate.isCandidate) {
-        newSuppressed.unshift({
-          event,
-          reason: 'rules_gate',
-          details: gate.reason,
-        });
-        continue;
-      }
+      const precedingEvents = state.events
+        .filter((candidate) => candidate.match_id === event.match_id && candidate.t < event.t)
+        .slice(-3);
+      const pipelineResult = processReplayEvent(event, precedingEvents, {
+        threshold: state.settings.threshold,
+        significanceEnabled: state.settings.significanceAgentEnabled,
+        narrativeEnabled: state.settings.narrativeAgentEnabled,
+        noviceEnabled: state.settings.novice && state.settings.audienceMode === 'novice',
+      });
+      newEventResults[event.id] = pipelineResult;
+      pendingEvaluations.push({
+        event,
+        precedingEvents,
+        activeMatchId: state.activeMatchId,
+        quickWatchList: [...state.quickWatchList],
+        settings: state.settings,
+      });
 
-      // 2. Alert Scorer lookup
-      const alert = state.alerts[event.id];
+      const alert = toScoredAlert(pipelineResult);
       if (!alert) {
         newSuppressed.unshift({
           event,
-          score: 1,
-          reason: 'rules_gate',
-          details: 'Event lacks AI significance',
+          score: pipelineResult.significance?.importance_score,
+          reason: 'below_threshold',
+          details: !pipelineResult.significance
+            ? 'Significance scoring is paused in Settings'
+            : !state.settings.narrativeAgentEnabled
+              ? 'Narrative alerts are paused in Settings'
+              : `Routine event below the ${state.settings.threshold} hotness threshold`,
         });
         continue;
       }
@@ -308,6 +386,7 @@ export const useReplayStore = create<ReplayStoreState>((set, get) => ({
         effectiveScore: filterResult.effectiveScore,
         isPinnedBoost: filterResult.isPinnedBoost,
         firedAtClockTime: nextT,
+        source: pipelineResult.source,
       };
 
       if (state.settings.delaySeconds > 0) {
@@ -358,7 +437,97 @@ export const useReplayStore = create<ReplayStoreState>((set, get) => ({
       alertQueue: combinedQueue,
       delayedAlertQueue: remainingDelayed,
       activeAlert: nextActiveAlert,
+      eventResults: newEventResults,
     });
+
+    for (const pending of pendingEvaluations) {
+      void evaluateReplayEvent(pending.event, pending.precedingEvents, {
+        threshold: pending.settings.threshold,
+        significanceEnabled: pending.settings.significanceAgentEnabled,
+        narrativeEnabled: pending.settings.narrativeAgentEnabled,
+        noviceEnabled: pending.settings.novice && pending.settings.audienceMode === 'novice',
+      }).then((remoteResult) => {
+        if (!remoteResult) return;
+        const current = get();
+        if (!current.firedEventIds.has(pending.event.id)) return;
+
+        const remotePipeline: EventPipelineResult = remoteResult;
+        const eventResults = { ...current.eventResults, [pending.event.id]: remotePipeline };
+        const remoteAlert: ScoredAlert | null = remoteResult.alert
+          ? {
+              event_id: remoteResult.alert.event_id,
+              importance: remoteResult.alert.importance,
+              alert: remoteResult.alert.alert,
+              why: remoteResult.alert.why,
+              novice_note: remoteResult.alert.novice_note,
+              tags: remoteResult.alert.tags,
+            }
+          : toScoredAlert(remotePipeline);
+
+        const hadAlert = current.activeAlert?.event.id === pending.event.id ||
+          current.alertQueue.some((item) => item.event.id === pending.event.id) ||
+          current.delayedAlertQueue.some((item) => item.alertData.event.id === pending.event.id);
+        let activeAlert = current.activeAlert;
+        let alertQueue = current.alertQueue.filter((item) => item.event.id !== pending.event.id);
+        let delayedAlertQueue = current.delayedAlertQueue.filter((item) => item.alertData.event.id !== pending.event.id);
+        let totalAlertsCount = current.totalAlertsCount;
+        const filterResult = remoteAlert
+          ? evaluateAlertFilter(pending.event, remoteAlert, pending.activeMatchId, pending.settings)
+          : null;
+        const canDeliver = Boolean(
+          remoteAlert &&
+          pending.settings.enabled &&
+          (pending.quickWatchList.length === 0 || pending.quickWatchList.includes(pending.event.match_id)) &&
+          filterResult?.shouldAlert &&
+          current.currentTime <= pending.event.t + 7,
+        );
+
+        if (activeAlert?.event.id === pending.event.id) activeAlert = null;
+        if (canDeliver && remoteAlert && filterResult) {
+          const alertData: ActiveAlertData = {
+            ...remoteAlert,
+            event: pending.event,
+            effectiveScore: filterResult.effectiveScore,
+            isPinnedBoost: filterResult.isPinnedBoost,
+            firedAtClockTime: pending.event.t,
+            source: remoteResult.source,
+          };
+
+          if (pending.settings.delaySeconds > 0) {
+            delayedAlertQueue = [...delayedAlertQueue, {
+              alertData,
+              displayAtT: pending.event.t + pending.settings.delaySeconds,
+            }];
+          } else if (current.activeAlert && current.activeAlert.event.id !== pending.event.id) {
+            alertQueue = [...alertQueue, alertData].sort((a, b) => a.firedAtClockTime - b.firedAtClockTime);
+          } else {
+            activeAlert = alertData;
+          }
+          if (!hadAlert) totalAlertsCount++;
+        } else if (hadAlert) {
+          totalAlertsCount = Math.max(0, totalAlertsCount - 1);
+        }
+
+        const suppressedEvents = current.suppressedEvents.filter((item) => item.event.id !== pending.event.id);
+        if (!canDeliver) {
+          suppressedEvents.unshift({
+            event: pending.event,
+            score: remotePipeline.significance?.importance_score,
+            reason: filterResult?.reason || 'below_threshold',
+            details: remoteResult.suppression_reason || filterResult?.details || 'AI pipeline did not qualify this event',
+          });
+        }
+
+        set({
+          eventResults,
+          activeAlert,
+          alertQueue,
+          delayedAlertQueue,
+          totalAlertsCount,
+          suppressedEvents: suppressedEvents.slice(0, 100),
+        });
+      });
+    }
   },
 
   switchMatch: (matchId: string) => {
@@ -409,15 +578,15 @@ export const useReplayStore = create<ReplayStoreState>((set, get) => ({
   dismissCatchUp: () => set({ activeCatchUp: null }),
 
   updateSettings: (partial) => {
-    set((s) => ({
-      settings: { ...s.settings, ...partial },
-    }));
+    const settings = { ...get().settings, ...partial };
+    set({ settings });
+    savePreferences({ settings, quickWatchList: get().quickWatchList, theme: get().theme });
   },
 
   toggleAIEnabled: () => {
-    set((s) => ({
-      settings: { ...s.settings, enabled: !s.settings.enabled },
-    }));
+    const settings = { ...get().settings, enabled: !get().settings.enabled };
+    set({ settings });
+    savePreferences({ settings, quickWatchList: get().quickWatchList, theme: get().theme });
   },
 
   setIsInPlayerHUDOpen: (open) => set({ isInPlayerHUDOpen: open }),
@@ -430,19 +599,23 @@ export const useReplayStore = create<ReplayStoreState>((set, get) => ({
     const tennisMatch = matches.find((m) => m.sport === 'tennis') || matches[0];
     set({
       currentTime: 0,
-      isPlaying: true,
-      speed: 10, // 10x replay speed for demo
+      isPlaying: false,
+      speed: 1,
+      currentPage: 'home',
       activeMatchId: tennisMatch?.id || 'match-tennis-ao24',
       activeAlert: null,
       alertQueue: [],
       delayedAlertQueue: [],
       firedEventIds: new Set<string>(),
+      eventResults: {},
       suppressedEvents: [],
       totalEvaluatedCount: 0,
       totalAlertsCount: 0,
       activeCatchUp: null,
       settings: {
         enabled: true,
+        significanceAgentEnabled: true,
+        narrativeAgentEnabled: true,
         contentDepth: 'tactical',
         audienceMode: 'novice',
         alertStyle: 'card',
@@ -453,7 +626,6 @@ export const useReplayStore = create<ReplayStoreState>((set, get) => ({
         threshold: 7,
         delaySeconds: 0,
         novice: true, // enable novice explainer for demo
-        liveAI: false,
       },
       isGuidedDemoActive: true,
       demoStep: 1,
@@ -462,14 +634,19 @@ export const useReplayStore = create<ReplayStoreState>((set, get) => ({
 
   nextDemoStep: () => {
     const current = get().demoStep;
-    if (current >= 3) {
-      set({ isGuidedDemoActive: false, demoStep: 0 });
+    if (current === 3) {
+      set({ currentPage: 'match', isPlaying: false, demoStep: 4 });
+    } else if (current === 4) {
+      set({ demoStep: 5 });
+    } else if (current >= 5) {
+      set({ isGuidedDemoActive: false, demoStep: 0, isPlaying: true });
     } else {
-      set({ demoStep: current + 1 });
+      set({ isGuidedDemoActive: true, demoStep: current + 1 });
     }
   },
 
   exitGuidedDemo: () => {
-    set({ isGuidedDemoActive: false, demoStep: 0 });
+    if (!get().isGuidedDemoActive) return;
+    set({ isGuidedDemoActive: false, demoStep: 0, isPlaying: get().currentPage === 'match' });
   },
 }));

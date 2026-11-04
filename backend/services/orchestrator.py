@@ -1,62 +1,124 @@
-"""
-Cutaway: Central Multi-Agent Orchestrator
-Coordinates the Rules Gate -> Significance -> Narrator & Novice -> FactGuard pipeline.
-"""
+"""Coordinates the per-event agent triggers and factual output checks."""
 
 import asyncio
-from typing import Optional, Tuple
-from backend.models.schemas import MatchEvent, EnrichedAlert
-from backend.services.rules_gate import evaluate_rules_gate
-from backend.agents.significance import evaluate_significance
+
 from backend.agents.narrator import generate_broadcast_narrative
-from backend.agents.novice import explain_jargon
+from backend.agents.novice import GLOSSARY, explain_jargon
+from backend.agents.significance import evaluate_significance
 from backend.guardrails.fact_guard import FactGuard
+from backend.models.schemas import (
+    EnrichedAlert,
+    EventEvaluationRequest,
+    EventEvaluationResponse,
+    NarrativeOutput,
+    NoviceOutput,
+    SignificanceOutput,
+)
+
 
 class PipelineOrchestrator:
     @classmethod
-    async def process_event(
-        cls,
-        event: MatchEvent
-    ) -> Tuple[Optional[EnrichedAlert], Optional[str]]:
-        """
-        Executes the full pipeline for an incoming event.
-        Returns (EnrichedAlert, None) if pivotal alert qualifies,
-        or (None, suppression_reason) if filtered.
-        """
-        # 1. Deterministic Heuristic Gate (O(1))
-        is_candidate, reason = evaluate_rules_gate(event)
-        if not is_candidate:
-            return None, reason or "Filtered by Stage 1 Heuristic Gate"
+    async def process_event(cls, request: EventEvaluationRequest) -> EventEvaluationResponse:
+        event = request.event
+        history = [
+            item for item in request.preceding_events
+            if item.match_id == event.match_id and item.t < event.t
+        ][-3:]
+        sources: list[str] = []
 
-        # 2. Agent 1: Significance & Leverage Scorer
-        significance = await evaluate_significance(event)
+        significance_call = None
+        significance: SignificanceOutput | None = None
+        if request.significance_enabled:
+            significance_call = await evaluate_significance(event, history)
+            significance = significance_call.output
+            sources.append(significance_call.source)
 
-        # Baseline threshold: ignore events below 4
-        if significance.importance_score < 4:
-            return None, f"Significance score {significance.importance_score} below baseline (4/10)"
-
-        # 3. Parallel Execution: Agent 2 (Narrator) and Agent 3 (Novice Translator)
-        narrative_task = generate_broadcast_narrative(event, significance)
-        novice_task = explain_jargon(event)
-
-        narrative, novice = await asyncio.gather(narrative_task, novice_task)
-
-        # 4. Guardrail Verification: FactGuard
-        guard_result = FactGuard.reconcile_narrative(event, narrative)
-        safe_data = guard_result.safe_output
-
-        # 5. Assemble Consolidated EnrichedAlert
-        alert = EnrichedAlert(
-            event_id=event.id,
-            match_id=event.match_id,
-            sport=event.sport,
-            t=event.t,
-            importance=significance.importance_score,
-            alert=safe_data["headline"],
-            why=safe_data["why_it_matters"],
-            novice_note=novice.plain_english_explanation if novice else None,
-            tags=safe_data.get("tags", [event.sport, event.type]),
-            source="live_agent_mesh"
+        novice_task = (
+            explain_jargon(event, history)
+            if request.novice_enabled and event.jargon_terms
+            else None
+        )
+        narrative_task = (
+            generate_broadcast_narrative(event, significance, history)
+            if significance and request.narrative_enabled and significance.importance_score >= request.threshold
+            else None
+        )
+        novice_call, narrative_call = await asyncio.gather(
+            novice_task if novice_task is not None else _resolved_none(),
+            narrative_task if narrative_task is not None else _resolved_none(),
         )
 
-        return alert, None
+        novice: NoviceOutput | None = novice_call.output if novice_call else None
+        if novice_call:
+            sources.append(novice_call.source)
+            # The script is the allow-list for explainers; reject model-selected terms outside it.
+            if novice.term_detected.lower() not in {term.lower() for term in event.jargon_terms}:
+                term = next((term for term in event.jargon_terms if term.lower() in GLOSSARY), None)
+                novice = NoviceOutput(
+                    event_id=event.id,
+                    term_detected=term or event.jargon_terms[0],
+                    plain_english_explanation=GLOSSARY.get((term or "").lower(), "A technical term used in this sport.")[:120],
+                    relevance_to_moment=event.headline[:100],
+                )
+                sources.append("deterministic_fallback")
+
+        narrative: NarrativeOutput | None = narrative_call.output if narrative_call else None
+        if narrative_call:
+            sources.append(narrative_call.source)
+            guard = FactGuard.reconcile_narrative(event, narrative, history)
+            if not guard.passed:
+                narrative = NarrativeOutput(
+                    event_id=event.id,
+                    headline=event.headline[:90],
+                    why_it_matters="This event changes the supplied match state.",
+                    primary_tags=[event.sport, event.type],
+                )
+                sources.append("deterministic_fallback")
+            else:
+                narrative = NarrativeOutput(
+                    event_id=event.id,
+                    headline=guard.safe_output["headline"],
+                    why_it_matters=guard.safe_output["why_it_matters"],
+                    primary_tags=guard.safe_output["tags"],
+                )
+
+        source = "live_agent_mesh" if sources and all(item == "live_agent_mesh" for item in sources) else "deterministic_fallback"
+        qualified = bool(significance and narrative)
+        alert = None
+        if qualified and significance and narrative:
+            alert = EnrichedAlert(
+                event_id=event.id,
+                match_id=event.match_id,
+                sport=event.sport,
+                t=event.t,
+                importance=significance.importance_score,
+                alert=narrative.headline,
+                why=narrative.why_it_matters,
+                novice_note=novice.plain_english_explanation if novice else None,
+                tags=narrative.primary_tags,
+                source="live_agent_mesh" if source == "live_agent_mesh" else "cached_fallback",
+            )
+
+        if not request.significance_enabled:
+            suppression_reason = "Significance scoring is disabled"
+        elif not request.narrative_enabled:
+            suppression_reason = "Narrative analysis is disabled"
+        elif significance and significance.importance_score < request.threshold:
+            suppression_reason = f"Score {significance.importance_score} is below threshold {request.threshold}"
+        else:
+            suppression_reason = None
+
+        return EventEvaluationResponse(
+            event_id=event.id,
+            source=source,
+            qualified=qualified,
+            significance=significance,
+            narrative=narrative,
+            novice=novice,
+            alert=alert,
+            suppression_reason=suppression_reason,
+        )
+
+
+async def _resolved_none():
+    return None

@@ -92,11 +92,63 @@ export interface MatchEvent {
   id: string;
   match_id: string;
   sport: SportType;
-  t: number; // replay clock seconds after time-compression
+  t: number; // Shared walkthrough timeline seconds; ordering key across all sport scripts.
   type: EventType;
   headline: string; // factual, neutral string
   actors: string[];
   state: CricketState | F1State | TennisState;
+  jargon_terms?: string[]; // Script-authored terms that may trigger a novice explanation.
+}
+
+/** One sport's ordered source events within the shared walkthrough. */
+export interface ReplayScript {
+  matchId: string;
+  sport: SportType;
+  events: MatchEvent[];
+}
+
+export interface ScheduledReplayEvent extends MatchEvent {
+  sequence: number; // Stable one-based order across all sport scripts.
+}
+
+export type LeverageCategory = 'routine' | 'notable' | 'major_swing' | 'championship_decider';
+
+export interface SignificanceOutput {
+  event_id: string;
+  importance_score: number;
+  leverage_category: LeverageCategory;
+  state_delta_summary: string;
+  confidence: number;
+}
+
+export interface NarrativeOutput {
+  event_id: string;
+  headline: string;
+  why_it_matters: string;
+  primary_tags: string[];
+}
+
+export interface NoviceExplainerOutput {
+  event_id: string;
+  term_detected: string;
+  plain_english_explanation: string;
+  relevance_to_moment: string;
+}
+
+/** Result of deterministic fixture processing. Outputs are mock agent results. */
+export interface EventPipelineResult {
+  event_id: string;
+  source: 'live_agent_mesh' | 'fixture_mock' | 'deterministic_fallback';
+  significance: SignificanceOutput | null;
+  narrative: NarrativeOutput | null;
+  novice: NoviceExplainerOutput | null;
+}
+
+export interface EnrichedAlert extends ScoredAlert {
+  match_id: string;
+  sport: SportType;
+  t: number;
+  source: 'live_agent_mesh' | 'cached_fallback';
 }
 
 export interface ScoredAlert {
@@ -118,7 +170,9 @@ export interface CatchUpSummary {
 }
 
 export interface UserSettings {
-  enabled: boolean; // In-player quick AI toggle (like CC)
+  enabled: boolean; // In-player alert delivery toggle
+  significanceAgentEnabled: boolean;
+  narrativeAgentEnabled: boolean;
   contentDepth: 'concise' | 'tactical' | 'stat_heavy'; // Concise headline vs tactical why vs stats
   audienceMode: 'novice' | 'pro'; // Novice mode with jargon translator vs veteran fan mode
   alertStyle: 'card' | 'pill' | 'glow_only';
@@ -129,7 +183,6 @@ export interface UserSettings {
   threshold: number; // 1 to 10 (default 7)
   delaySeconds: number; // 0 to 60 (default 0)
   novice: boolean; // default false
-  liveAI: boolean; // default false
 }
 
 export interface MatchMetadata {

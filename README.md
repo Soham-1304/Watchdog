@@ -16,7 +16,7 @@ Today, discovering a decisive swing in another match means leaving the player, s
 ## 2. The Solution: "Cutaway"
 
 Cutaway acts as an intelligent sentinel running in parallel with the live stream:
-1. **Two-Stage Significance Pipeline:** Filters out ~80%+ of routine events via a deterministic rules gate, then uses an LLM scorer to evaluate game-state significance (1–10 score + 1-line reason + novice rule explainer).
+1. **Event-Triggered Agent Pipeline:** Scores each event against the current state and up to three earlier events from the same match. The broadcast narrator runs only above the selected significance threshold; the novice explainer runs only for script-tagged jargon. FactGuard checks generated narrative before delivery.
 2. **"Restraint as a Feature" (Filtered View):** Fans can inspect suppressed events (`23 evaluated, 6 alerts, 74% suppressed`) as transparent proof of anti-bloat engineering.
 3. **One-Tap Feed Switching & Catch-Up Card:** Jumps directly to decisive moments in other feeds, and delivers a 2-sentence *"Since you left"* summary when returning to the primary stream.
 4. **Anti-Spoiler Presentation Delay:** Configurable buffer (0–60s) ensuring alerts never fire ahead of the broadcast's video latency.
@@ -32,14 +32,19 @@ Cutaway acts as an intelligent sentinel running in parallel with the live stream
            │ Normalized MatchEvent { id, match_id, sport, t, type, headline, state }
            ▼
 ┌──────────────────────┐
-│  Stage 1: Rules Gate │  (Deterministic, O(1) filter for candidate moments *)
+│  Event Sequencer     │  (Separate sport scripts, one shared ordered timeline)
 └──────────┬───────────┘
-           │ Candidates Only
+           │ One event + current state + up to 3 prior events
            ▼
-┌──────────────────────┐
-│  Stage 2: LLM Scorer │  (Evaluates game state, returns score 1-10 + "why" line)
-└──────────┬───────────┘
-           │ ScoredAlert { importance, alert, why, novice_note }
+┌────────────────────────┐
+│ Significance Agent     │  (Scores each event 1-10)
+└──────────┬─────────────┘
+           │ Qualifying event / jargon tag
+           ▼
+┌────────────────────────┐
+│ Narrative + Novice     │  (Narrative by threshold; explainer by jargon)
+└──────────┬─────────────┘
+           │ FactGuard checked result
            ▼
 ┌──────────────────────┐
 │  Viewer Filters      │  (Pins +2 boost, threshold >= 7, same-match exclusion, delay buffer)
@@ -55,12 +60,9 @@ Everything downstream of the adapter is 100% source-agnostic.
 
 ---
 
-## 4. Production Integration with FanCode (`fancodeAdapter.stub.ts`)
+## 4. Production Integration Path
 
-As a Forward Deployed Engineer (FDE), Cutaway was designed for FanCode's real backend:
-- FanCode's live event bus (WebSocket/SSE) already emits real-time data for cricket, football, and racing.
-- In production, **zero changes** are required in the scoring pipeline or UI layer.
-- The developer simply swaps `ReplayAdapter` for `FanCodeLiveAdapter` (see [`src/adapters/fancodeAdapter.stub.ts`](file:///Users/sohamkarandikar/Documents/FanCode_Task/src/adapters/fancodeAdapter.stub.ts)), which normalizes incoming telemetry into the standard `MatchEvent` schema.
+This prototype currently uses local replay fixtures. Its normalized `MatchEvent` contract gives a future live-data adapter a clear integration point, but a FanCode event-bus adapter, stream synchronization, credentials, and production validation are not included. Those would need to be supplied and tested with FanCode's telemetry and player infrastructure.
 
 ---
 
@@ -80,18 +82,40 @@ The prototype runs on real historical moments time-compressed and synchronized o
 ### Prerequisites
 - Node.js 18+ (tested on Node v23)
 - npm 9+
+- Python 3.10+
 
 ### Quick Start
 ```bash
 # 1. Install dependencies
 npm install
 
-# 2. Run local development server
+# 2. Install the AI service dependencies
+python -m pip install -r backend/requirements.txt
+
+# 3. Optional: copy .env.example to .env and set GEMINI_API_KEY for live model calls.
+# The key is read by the Python service and is never sent to the browser.
+
+# 4. Start the AI service in one terminal
+python -m uvicorn backend.main:app --reload --port 8000
+
+# 5. Start the frontend in another terminal
 npm run dev
 
-# 3. Open in browser
+# 6. Open in browser
 http://localhost:5173
 ```
+
+When the AI service or Gemini key is unavailable, the event pipeline returns deterministic fixture-backed results.
+
+## 7. Deployment Preparation
+
+The frontend is configured for Vercel (`vercel.json`); the FastAPI service has a Render Blueprint (`render.yaml`). Deploy them as separate services:
+
+1. Create the Render service from this repository's `render.yaml`. Set `FRONTEND_ORIGINS` to the exact Vercel site origin (comma-separated if there are preview origins) and optionally set the server-side `GEMINI_API_KEY`.
+2. Deploy the repository to Vercel. Set the build-time variable `VITE_CUTAWAY_API_URL` to the Render service origin, without a trailing slash, then redeploy the frontend.
+3. Check `https://<render-service>/api/v1/health`, then open the Vercel URL and advance events to confirm API calls or deterministic fallback.
+
+The frontend continues to use deterministic local outputs if the separate API is unreachable. Never put `GEMINI_API_KEY` in a `VITE_` variable.
 
 To launch directly into the 3-step evaluator tour, visit:
 ```
@@ -107,7 +131,7 @@ http://localhost:5173/?demo=1
 
 ---
 
-## 7. Guided Demo Walkthrough (3 Minutes)
+## 8. Guided Demo Walkthrough (3 Minutes)
 
 1. **The Problem (0:00 - 0:20):** *"I'm watching Sinner on FanCode. An F1 title decider and T20 World Cup final are live in the background. If I leave to check, I break my viewing immersion. If I don't, I find out 10 minutes too late."*
 2. **The Sentinel (0:20 - 0:45):** Start the replay. Point to the "Other Feeds" strip monitoring background matches.
@@ -118,7 +142,7 @@ http://localhost:5173/?demo=1
 
 ---
 
-## 8. Data Credits & License
+## 9. Data Credits & License
 
 - **Cricket Data:** Ball-by-ball match dataset from [Cricsheet](https://cricsheet.org/) (Creative Commons Attribution-ShareAlike 4.0 International).
 - **Formula 1 Data:** Telemetry and lap timing structured from [FastF1](https://github.com/theOehrly/Fast-F1) / [OpenF1](https://openf1.org/).

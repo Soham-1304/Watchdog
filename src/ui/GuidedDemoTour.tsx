@@ -1,80 +1,115 @@
-import { Sparkles, ArrowRight, X, Eye, Shield, Radio } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { ArrowRight, Sparkles, X } from 'lucide-react';
+import { useReducedMotion } from 'framer-motion';
 import { useReplayStore } from '../store/useReplayStore';
+
+const tourSteps = [
+  {
+    target: 'home-feature',
+    title: 'The match at a glance',
+    copy: 'Live score and the latest AI signal share one clear view. Signals appear after their event happens.',
+    action: 'Next',
+  },
+  {
+    target: 'home-highlights',
+    title: 'Highlights worth a look',
+    copy: 'Key moments appear as the scripted match unfolds. No future events are shown early.',
+    action: 'Next',
+  },
+  {
+    target: 'home-quickwatch',
+    title: 'Keep another stream close',
+    copy: 'QuickWatch marks the matches that can surface a small switch cue while you watch.',
+    action: 'Open the stream',
+  },
+  {
+    target: 'stream-player',
+    title: 'The stream view',
+    copy: 'The score stays central. Events advance on their own at a calm pace; you won’t need to step through each one.',
+    action: 'Next',
+  },
+  {
+    target: 'stream-explainer',
+    title: 'Cues arrive quietly',
+    copy: 'Jargon help eases in from the bottom. A QuickWatch update appears bottom-right with its hotness score, headline, and Switch.',
+    action: 'Start watching',
+  },
+];
+
+type Rect = { top: number; left: number; width: number; height: number };
 
 export function GuidedDemoTour() {
   const isGuidedDemoActive = useReplayStore((s) => s.isGuidedDemoActive);
   const demoStep = useReplayStore((s) => s.demoStep);
   const nextDemoStep = useReplayStore((s) => s.nextDemoStep);
   const exitGuidedDemo = useReplayStore((s) => s.exitGuidedDemo);
+  const reduceMotion = useReducedMotion();
+  const [rect, setRect] = useState<Rect | null>(null);
+  const current = isGuidedDemoActive ? tourSteps[demoStep - 1] : undefined;
 
-  if (!isGuidedDemoActive || demoStep === 0) return null;
+  useEffect(() => {
+    if (!current) {
+      setRect(null);
+      return;
+    }
 
-  const steps = [
-    {
-      step: 1,
-      title: 'Step 1: The Main Match',
-      desc: "You're watching Jannik Sinner in the deciding 5th set of the Australian Open Final. This screen acts as FanCode's active video player.",
-      icon: Eye,
-      highlight: 'Focus on the main scoreboard above',
-    },
-    {
-      step: 2,
-      title: 'Step 2: The Multi-Sport Sentinel',
-      desc: 'In the background, Cutaway tracks live feeds for the F1 Abu Dhabi decider and T20 World Cup final. Routine events are silently filtered.',
-      icon: Radio,
-      highlight: 'Observe the Other Feeds strip below',
-    },
-    {
-      step: 3,
-      title: 'Step 3: Decisive Alert & Restraint',
-      desc: 'At ~15s, a Safety Car in F1 fires an alert. Tap "Switch" to jump instantly, and click "Filtered" in the top bar to inspect what was held back.',
-      icon: Shield,
-      highlight: 'Alerts appear in bottom-right corner',
-    },
-  ];
+    const selector = `[data-tour="${current.target}"]`;
+    const target = document.querySelector<HTMLElement>(selector);
+    if (!target) {
+      setRect(null);
+      return;
+    }
 
-  const current = steps[demoStep - 1] || steps[0];
-  const Icon = current.icon;
+    target.scrollIntoView({ block: 'center', behavior: reduceMotion ? 'auto' : 'smooth' });
+    const measure = () => {
+      const bounds = target.getBoundingClientRect();
+      setRect({ top: bounds.top, left: bounds.left, width: bounds.width, height: bounds.height });
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(target);
+    window.addEventListener('resize', measure);
+    window.addEventListener('scroll', measure, true);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', measure);
+      window.removeEventListener('scroll', measure, true);
+    };
+  }, [current?.target, reduceMotion]);
+
+  if (!current) return null;
+
+  const stepLabel = `${String(demoStep).padStart(2, '0')} / ${String(tourSteps.length).padStart(2, '0')}`;
 
   return (
-    <div className="fixed bottom-6 left-6 z-50 max-w-sm w-[calc(100vw-3rem)] animate-slide-in-right">
-      <div className="broadcast-glass border-2 border-broadcast-orange rounded-3xl p-5 shadow-2xl shadow-broadcast-orange/30">
-        <div className="flex items-center justify-between mb-2.5">
-          <div className="flex items-center gap-2 text-xs font-black text-broadcast-orange uppercase tracking-wider">
-            <Sparkles className="w-4 h-4" />
-            <span>GUIDED DEMO · STEP {demoStep} OF 3</span>
+    <div className="fixed inset-0 z-[100]" aria-label="Guided app tour">
+      {rect && (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none fixed rounded-[1.3rem] border border-orange-300/85 shadow-[0_0_0_9999px_rgba(3,5,8,.66),0_0_38px_rgba(255,82,0,.16)] transition-[top,left,width,height] duration-300 motion-reduce:transition-none"
+          style={{ top: rect.top - 5, left: rect.left - 5, width: rect.width + 10, height: rect.height + 10 }}
+        />
+      )}
+
+      <section className="fixed bottom-4 left-1/2 z-[101] w-[min(500px,calc(100vw-2rem))] -translate-x-1/2 rounded-2xl border border-white/[0.12] bg-[#101318]/95 p-4 text-white shadow-[0_24px_70px_rgba(0,0,0,.52)] backdrop-blur-2xl sm:bottom-6 sm:p-5" role="dialog" aria-modal="false" aria-labelledby="guided-tour-title" aria-describedby="guided-tour-copy">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2 text-[10px] font-extrabold uppercase tracking-[.16em] text-orange-300"><Sparkles size={14} /> Product tour</div>
+          <div className="flex items-center gap-3">
+            <span className="font-mono-numbers text-[10px] font-semibold text-white/40">{stepLabel}</span>
+            <button onClick={exitGuidedDemo} aria-label="Skip tour" className="flex h-8 w-8 items-center justify-center rounded-full text-white/55 transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300"><X size={15} /></button>
           </div>
-          <button
-            onClick={exitGuidedDemo}
-            className="text-broadcast-subtle hover:text-white p-1 rounded-lg hover:bg-broadcast-card"
-          >
-            <X className="w-4 h-4" />
+        </div>
+        <h2 id="guided-tour-title" className="mt-3 text-base font-extrabold tracking-tight sm:text-lg">{current.title}</h2>
+        <p id="guided-tour-copy" className="mt-1 text-xs leading-5 text-white/65 sm:text-sm">{current.copy}</p>
+        <div className="mt-4 flex items-center justify-between gap-4">
+          <div className="flex h-1 flex-1 overflow-hidden rounded-full bg-white/10" aria-hidden="true">
+            <div className="rounded-full bg-broadcast-orange transition-[width] duration-300 motion-reduce:transition-none" style={{ width: `${(demoStep / tourSteps.length) * 100}%` }} />
+          </div>
+          <button onClick={nextDemoStep} className="inline-flex h-10 shrink-0 items-center gap-2 rounded-xl bg-broadcast-orange px-4 text-xs font-extrabold text-white shadow-[0_8px_24px_rgba(255,82,0,.2)] transition hover:bg-broadcast-orangeHover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#101318]">
+            {current.action}<ArrowRight size={14} />
           </button>
         </div>
-
-        <div className="flex items-start gap-3.5 my-2.5">
-          <div className="p-2.5 rounded-2xl bg-broadcast-orange/20 text-broadcast-orange border border-broadcast-orange/30 shrink-0 shadow-md">
-            <Icon className="w-5 h-5" />
-          </div>
-          <div>
-            <h4 className="text-sm font-black text-white mb-1">{current.title}</h4>
-            <p className="text-xs text-broadcast-muted leading-relaxed font-medium">{current.desc}</p>
-          </div>
-        </div>
-
-        <div className="mt-3.5 pt-2.5 border-t border-broadcast-border flex items-center justify-between">
-          <span className="text-[11px] text-broadcast-orange font-bold">
-            {current.highlight}
-          </span>
-          <button
-            onClick={nextDemoStep}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-broadcast-orange to-broadcast-amber hover:brightness-110 text-white rounded-xl text-xs font-black transition-all shadow-md shadow-broadcast-orange/30"
-          >
-            <span>{demoStep === 3 ? 'Got it!' : 'Next'}</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      </div>
+      </section>
     </div>
   );
 }

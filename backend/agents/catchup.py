@@ -49,9 +49,10 @@ Synthesize a 2-sentence recap (max 180 chars) and the current game equation (max
         "current_game_equation": current_state_line[:90]
     }
 
-    return await call_structured_agent(
+    result = await call_structured_agent(
         system_instruction=CATCHUP_SYSTEM_PROMPT,
         prompt=prompt,
         response_schema=CatchUpOutput,
         fallback_data=fallback
     )
+    return result.output

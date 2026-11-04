@@ -59,6 +59,7 @@
     "type": "over_end",
     "headline": "Over 17 complete: Bumrah concedes just 4 runs with pinpoint yorkers. SA 157/5",
     "actors": ["Jasprit Bumrah", "David Miller"],
+    "jargon_terms": ["yorker"],
     "state": {
       "innings": 2,
       "battingTeam": "South Africa",
@@ -85,6 +86,7 @@
     "type": "wicket",
     "headline": "BOWLED HIM! Bumrah castles Jansen with an unplayable 142 km/h off-cutter!",
     "actors": ["Jasprit Bumrah", "Marco Jansen"],
+    "jargon_terms": ["off-cutter"],
     "state": {
       "innings": 2,
       "battingTeam": "South Africa",

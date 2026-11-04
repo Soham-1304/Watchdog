@@ -49,6 +49,7 @@
     "type": "game_end",
     "headline": "Sinner holds to love with 198 km/h ace down the T (3-2)",
     "actors": ["Jannik Sinner"],
+    "jargon_terms": ["hold to love"],
     "state": {
       "player1": { "name": "Jannik Sinner", "seed": "4", "setsWon": 2 },
       "player2": { "name": "Daniil Medvedev", "seed": "3", "setsWon": 2 },
@@ -91,6 +92,7 @@
     "type": "break_point",
     "headline": "Sinner unleashes blistering inside-out forehand to earn BREAK POINT (30-40)",
     "actors": ["Jannik Sinner", "Daniil Medvedev"],
+    "jargon_terms": ["break point"],
     "state": {
       "player1": { "name": "Jannik Sinner", "seed": "4", "setsWon": 2 },
       "player2": { "name": "Daniil Medvedev", "seed": "3", "setsWon": 2 },
@@ -150,10 +152,11 @@
     "id": "ten-008",
     "match_id": "match-tennis-ao24",
     "sport": "tennis",
-    "t": 315,
+    "t": 500,
     "type": "match_point",
     "headline": "CHAMPIONSHIP POINT! Sinner moves to 40-30 serving for the Grand Slam title",
     "actors": ["Jannik Sinner", "Daniil Medvedev"],
+    "jargon_terms": ["championship point"],
     "state": {
       "player1": { "name": "Jannik Sinner", "seed": "4", "setsWon": 2 },
       "player2": { "name": "Daniil Medvedev", "seed": "3", "setsWon": 2 },
@@ -171,7 +174,7 @@
     "id": "ten-009",
     "match_id": "match-tennis-ao24",
     "sport": "tennis",
-    "t": 340,
+    "t": 550,
     "type": "set_end",
     "headline": "SINNER WINS AUSTRALIAN OPEN! Rips forehand down line to complete 5-set comeback",
     "actors": ["Jannik Sinner"],

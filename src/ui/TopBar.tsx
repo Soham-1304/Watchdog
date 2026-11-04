@@ -10,38 +10,45 @@ export function TopBar() {
   const matches = useReplayStore((s) => s.matches);
   const theme = useReplayStore((s) => s.theme);
   const toggleTheme = useReplayStore((s) => s.toggleTheme);
+  const play = useReplayStore((s) => s.play);
+  const exitGuidedDemo = useReplayStore((s) => s.exitGuidedDemo);
 
   const handleSelectSport = (sport: 'tennis' | 'f1' | 'cricket') => {
     const match = matches.find((m) => m.sport === sport);
     if (match) {
       switchMatch(match.id);
       setCurrentPage('match');
+      play();
+      exitGuidedDemo();
     }
   };
 
   const activeMatch = matches.find((m) => m.id === activeMatchId);
 
   return (
-    <header className="sticky top-0 z-40 bg-white/85 dark:bg-[#08090c]/90 backdrop-blur-xl border-b border-slate-200/80 dark:border-white/5 px-4 lg:px-8 py-3 transition-colors duration-200 select-none">
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+    <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 px-3 py-2.5 backdrop-blur-xl transition-colors duration-200 dark:border-white/5 dark:bg-[#08090c]/90 sm:px-4 lg:px-8">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 sm:gap-4">
         {/* Left: FanCode Logo & Primary Navigation */}
-        <div className="flex items-center gap-6 sm:gap-8">
+        <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-8">
           {/* FanCode Wordmark Logo */}
-          <div
-            onClick={() => setCurrentPage('home')}
-            className="flex items-center gap-2 cursor-pointer group"
+          <button
+            type="button"
+            onClick={() => { exitGuidedDemo(); setCurrentPage('home'); }}
+            aria-label="FanCode home"
+            className="group shrink-0 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-broadcast-orange"
           >
-            <span className="text-xl sm:text-2xl font-black italic tracking-tighter text-broadcast-orange group-hover:brightness-110 transition-all drop-shadow-[0_0_12px_rgba(255,82,0,0.35)]">
+            <span className="text-lg font-black italic tracking-tighter text-broadcast-orange transition-all drop-shadow-[0_0_12px_rgba(255,82,0,0.2)] group-hover:brightness-110 sm:text-2xl">
               FANCODE
             </span>
-          </div>
+          </button>
 
           {/* Simple Clean Navigation: Home + 3 Streams */}
-          <nav className="flex items-center gap-1 sm:gap-2 text-xs font-bold text-slate-600 dark:text-zinc-400">
+          <nav aria-label="Main navigation" className="scrollbar-none flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto text-[11px] font-bold text-slate-600 dark:text-zinc-400 sm:gap-2 sm:text-xs">
             {/* Home */}
             <button
-              onClick={() => setCurrentPage('home')}
-              className={`relative px-3 py-1.5 rounded-lg transition-colors ${
+              onClick={() => { exitGuidedDemo(); setCurrentPage('home'); }}
+              aria-current={currentPage === 'home' ? 'page' : undefined}
+              className={`relative min-h-9 shrink-0 whitespace-nowrap rounded-lg px-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-broadcast-orange sm:px-3 ${
                 currentPage === 'home'
                   ? 'text-slate-900 dark:text-white'
                   : 'hover:text-slate-900 dark:hover:text-zinc-200'
@@ -60,7 +67,9 @@ export function TopBar() {
             {/* Tennis Stream */}
             <button
               onClick={() => handleSelectSport('tennis')}
-              className={`relative px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${
+              aria-label="Tennis stream"
+              aria-current={currentPage === 'match' && activeMatch?.sport === 'tennis' ? 'page' : undefined}
+              className={`relative flex min-h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg px-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-broadcast-orange sm:px-3 ${
                 currentPage === 'match' && activeMatch?.sport === 'tennis'
                   ? 'text-slate-900 dark:text-white'
                   : 'hover:text-slate-900 dark:hover:text-zinc-200'
@@ -79,13 +88,15 @@ export function TopBar() {
             {/* Formula 1 Stream */}
             <button
               onClick={() => handleSelectSport('f1')}
-              className={`relative px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${
+              aria-label="Formula 1 stream"
+              aria-current={currentPage === 'match' && activeMatch?.sport === 'f1' ? 'page' : undefined}
+              className={`relative flex min-h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg px-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-broadcast-orange sm:px-3 ${
                 currentPage === 'match' && activeMatch?.sport === 'f1'
                   ? 'text-slate-900 dark:text-white'
                   : 'hover:text-slate-900 dark:hover:text-zinc-200'
               }`}
             >
-              <span>Formula 1</span>
+              <span className="sm:hidden">F1</span><span className="hidden sm:inline">Formula 1</span>
               {currentPage === 'match' && activeMatch?.sport === 'f1' && (
                 <motion.div
                   layoutId="nav-indicator"
@@ -98,7 +109,9 @@ export function TopBar() {
             {/* Cricket Stream */}
             <button
               onClick={() => handleSelectSport('cricket')}
-              className={`relative px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${
+              aria-label="Cricket stream"
+              aria-current={currentPage === 'match' && activeMatch?.sport === 'cricket' ? 'page' : undefined}
+              className={`relative flex min-h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg px-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-broadcast-orange sm:px-3 ${
                 currentPage === 'match' && activeMatch?.sport === 'cricket'
                   ? 'text-slate-900 dark:text-white'
                   : 'hover:text-slate-900 dark:hover:text-zinc-200'
@@ -117,11 +130,13 @@ export function TopBar() {
         </div>
 
         {/* Right: Theme Toggle & Settings */}
-        <div className="flex items-center gap-2 sm:gap-2.5">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2.5">
           {/* Light / Dark Mode Toggle */}
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-zinc-300 border border-slate-200 dark:border-white/10 transition-colors"
+            type="button"
+            aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-slate-100 text-slate-700 transition-colors hover:bg-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-broadcast-orange dark:border-white/10 dark:bg-white/5 dark:text-zinc-300 dark:hover:bg-white/10 sm:h-10 sm:w-10"
             title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
           >
             {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-700" />}
@@ -129,8 +144,11 @@ export function TopBar() {
 
           {/* Settings Button */}
           <button
-            onClick={() => setCurrentPage('settings')}
-            className={`p-2 rounded-xl transition-all ${
+            onClick={() => { exitGuidedDemo(); setCurrentPage('settings'); }}
+            type="button"
+            aria-label="Open settings"
+            aria-current={currentPage === 'settings' ? 'page' : undefined}
+            className={`flex h-9 w-9 items-center justify-center rounded-xl transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-broadcast-orange sm:h-10 sm:w-10 ${
               currentPage === 'settings'
                 ? 'bg-broadcast-orange text-white shadow-lg shadow-broadcast-orange/30'
                 : 'bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-zinc-300 border border-slate-200 dark:border-white/10'

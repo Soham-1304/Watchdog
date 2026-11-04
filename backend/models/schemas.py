@@ -92,11 +92,12 @@ class MatchEvent(BaseModel):
     id: str
     match_id: str
     sport: SportType
-    t: float = Field(ge=0.0, description="Normalized replay clock seconds")
+    t: float = Field(ge=0.0, description="Shared walkthrough timeline seconds")
     type: str
     headline: str
     actors: list[str] = Field(default_factory=list)
     state: Union[CricketState, F1State, TennisState, dict[str, Any]]
+    jargon_terms: list[str] = Field(default_factory=list)
 
 
 # ==============================================================================
@@ -109,7 +110,7 @@ class SignificanceOutput(BaseModel):
     event_id: str
     importance_score: int = Field(ge=1, le=10, description="1-10 significance rating")
     leverage_category: Literal["routine", "notable", "major_swing", "championship_decider"]
-    state_delta_summary: str = Field(max_length=150, description="Factual change in game equation")
+    state_delta_summary: str = Field(max_length=80, description="Factual change in game equation")
     confidence: float = Field(ge=0.0, le=1.0, default=1.0)
 
 
@@ -117,18 +118,27 @@ class NarrativeOutput(BaseModel):
     """Output from Agent 2: Broadcast Color Analyst (The 'Why')"""
     model_config = ConfigDict(extra="ignore")
     event_id: str
-    headline: str = Field(max_length=120, description="Clear, urgent broadcast alert line")
-    why_it_matters: str = Field(max_length=180, description="1-line strategic context")
-    primary_tags: list[str] = Field(min_length=1, max_length=5)
+    headline: str = Field(max_length=90, description="Clear, urgent broadcast alert line")
+    why_it_matters: str = Field(max_length=140, description="1-line strategic context")
+    primary_tags: list[str] = Field(min_length=1, max_length=4)
 
 
 class NoviceOutput(BaseModel):
     """Output from Agent 3: Novice Fan Jargon Translator"""
     model_config = ConfigDict(extra="ignore")
     event_id: str
-    term_detected: str
-    plain_english_explanation: str = Field(max_length=180, description="Plain-English explanation")
-    relevance_to_moment: str = Field(max_length=150)
+    term_detected: str = Field(max_length=50)
+    plain_english_explanation: str = Field(max_length=120, description="Plain-English explanation")
+    relevance_to_moment: str = Field(max_length=100)
+
+
+class EventEvaluationRequest(BaseModel):
+    event: MatchEvent
+    preceding_events: list[MatchEvent] = Field(default_factory=list, max_length=3)
+    threshold: int = Field(default=7, ge=1, le=10)
+    significance_enabled: bool = True
+    narrative_enabled: bool = True
+    novice_enabled: bool = True
 
 
 class CatchUpOutput(BaseModel):
@@ -161,3 +171,14 @@ class EnrichedAlert(BaseModel):
     novice_note: Optional[str] = None
     tags: list[str] = Field(default_factory=list)
     source: Literal["live_agent_mesh", "cached_fallback"] = "live_agent_mesh"
+
+
+class EventEvaluationResponse(BaseModel):
+    event_id: str
+    source: Literal["live_agent_mesh", "deterministic_fallback"]
+    qualified: bool
+    significance: Optional[SignificanceOutput] = None
+    narrative: Optional[NarrativeOutput] = None
+    novice: Optional[NoviceOutput] = None
+    alert: Optional[EnrichedAlert] = None
+    suppression_reason: Optional[str] = None

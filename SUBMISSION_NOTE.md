@@ -1,16 +1,14 @@
-# Cutaway: 200-Word Submission Note
-**Candidate:** Soham Karandikar  
-**Role:** Forward Deployed Engineer Intern, Dream11 / Dream Sports (FanCode)  
-**Artifact URL:** *(Insert deployed live link)*  
-**Word Count:** 182 words (Hard limit: 200 words)
+# Cutaway — Submission Note
 
----
+**Candidate:** Soham Karandikar
+**Role:** Forward Deployed Engineer Intern, Dream Sports / FanCode
+**Live demo:** *(add deployment URL after release)*
+**Word count:** 200 (excluding this heading and metadata)
 
-### The Fan Problem
-FanCode broadcasts multiple live sports simultaneously—F1, tennis, cricket, football. A fan watching one match suffers constant FOMO regarding decisive moments occurring in concurrent streams. Today, checking means abandoning the video player, scrolling cluttered feeds, and guessing what matters. Existing score notifications spam on every routine point or boundary without understanding true game significance.
+Cutaway is a multi-match companion concept for FanCode. It helps fans follow concurrent sports without leaving their current stream. Noisy alerts obscure moments that change a contest; Cutaway aims to surface significant events.
 
-### How Cutaway Helps
-Cutaway is an intelligent multi-match companion layer built for FanCode. A two-stage pipeline pairs a deterministic rules gate with an LLM scorer to identify genuinely pivotal turning points (1–10 significance, broadcast-grade 1-line explanation, novice rule explainers). Fans switch feeds in one tap, receive a concise "Since you left" catch-up card upon returning, and can inspect suppressed events as transparent proof of anti-bloat restraint. A configurable delay ensures alerts never spoil stream latency.
+Replay scripts cover tennis, Formula 1, and cricket. Each event updates its match state and passes through a deterministic significance gate. Qualifying events trigger a concise broadcast-style narrative, while novice explanations appear only when sports jargon occurs. FactGuard checks generated claims against match data. Fixture fallbacks keep the walkthrough usable offline. QuickWatch switches streams, and a catch-up brief summarizes missed events when viewers return.
 
-### AI Tools & Architecture
-Powered by Google Gemini 1.5 Flash via a decoupled Python/Pydantic agent mesh (Significance Scorer, Broadcast Narrator, Novice Explainer, Catch-Up Synthesizer, and FactGuard reconciler). Built with Vite, React, TypeScript, and Tailwind CSS using synchronized, time-compressed real match replays (Cricsheet, FastF1, Sackmann Tennis). Engineered with modular adapter interfaces for direct drop-in to FanCode’s production event bus.
+The interface pairs React, TypeScript, and Vite with a FastAPI service using Pydantic schemas and optional Gemini calls. A stepwise event walkthrough keeps context visible without pretending to provide live video. Stream-specific visuals keep scores, alerts, and explanations central.
+
+Cutaway is a prototype, not a FanCode production integration. Its normalized event contract provides a starting point for a future live-data adapter. Connecting it requires FanCode telemetry and event access, stream synchronization, production credentials, and operational validation. The project demonstrates how restrained, fact-checked alerts could help viewers stay informed across simultaneous matches while keeping the primary stream central. This supports calmer shared match awareness.

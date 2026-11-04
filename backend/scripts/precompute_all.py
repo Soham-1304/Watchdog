@@ -7,7 +7,7 @@ Runs all replay events through the Python Multi-Agent Mesh and updates public/re
 import json
 import asyncio
 from pathlib import Path
-from backend.models.schemas import MatchEvent
+from backend.models.schemas import EventEvaluationRequest, MatchEvent
 from backend.services.orchestrator import PipelineOrchestrator
 
 async def main():
@@ -34,7 +34,12 @@ async def main():
     suppressed_count = 0
 
     for ev in events:
-        alert, suppression = await PipelineOrchestrator.process_event(ev)
+        preceding = [candidate for candidate in events if candidate.match_id == ev.match_id and candidate.t < ev.t][-3:]
+        result = await PipelineOrchestrator.process_event(EventEvaluationRequest(
+            event=ev,
+            preceding_events=preceding,
+        ))
+        alert = result.alert
         if alert:
             qualified_count += 1
             alerts_dict[alert.event_id] = {
@@ -48,7 +53,7 @@ async def main():
             print(f"✅ ALERT [{alert.importance}/10] {alert.sport.upper()} {alert.alert}")
         else:
             suppressed_count += 1
-            print(f"🛡️ FILTERED [{ev.sport.upper()}] {ev.type}: {suppression}")
+            print(f"🛡️ FILTERED [{ev.sport.upper()}] {ev.type}: {result.suppression_reason}")
 
     with open(alerts_out_path, "w") as f:
         json.dump(alerts_dict, f, indent=2)

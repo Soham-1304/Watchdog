@@ -1,75 +1,117 @@
-import { MatchEvent, ScoredAlert } from '../types';
-import { ScorerInput, ScorerOutput, validateScorerOutput } from './schema';
-import { replayAdapter } from '../adapters/replayAdapter';
+import {
+  EnrichedAlert,
+  EventPipelineResult,
+  MatchEvent,
+  NarrativeOutput,
+  NoviceExplainerOutput,
+  SignificanceOutput,
+} from '../types';
 
-export async function scoreEvent(
-  event: MatchEvent,
-  useLiveAI: boolean = false
-): Promise<{ alert: ScoredAlert; source: 'live' | 'cached' }> {
-  const cached = replayAdapter.getAlert(event.id);
+export interface EvaluateEventOptions {
+  threshold: number;
+  significanceEnabled: boolean;
+  narrativeEnabled: boolean;
+  noviceEnabled: boolean;
+}
 
-  if (!useLiveAI) {
-    if (cached) return { alert: cached, source: 'cached' };
-    return {
-      alert: {
-        event_id: event.id,
-        importance: 5,
-        alert: event.headline.slice(0, 85),
-        why: 'Notable momentum event in match progress.',
-        tags: [event.type],
-      },
-      source: 'cached',
-    };
+export interface EvaluateEventResponse extends EventPipelineResult {
+  qualified: boolean;
+  alert: EnrichedAlert | null;
+  suppression_reason: string | null;
+}
+
+interface RawEvaluateEventResponse {
+  event_id: string;
+  source: 'live_agent_mesh' | 'deterministic_fallback';
+  qualified: boolean;
+  significance: SignificanceOutput | null;
+  narrative: NarrativeOutput | null;
+  novice: NoviceExplainerOutput | null;
+  alert: EnrichedAlert | null;
+  suppression_reason: string | null;
+}
+
+const API_BASE_URL = (import.meta.env.VITE_CUTAWAY_API_URL || '').replace(/\/$/, '');
+
+function isEvaluationResponse(value: unknown, eventId: string): value is RawEvaluateEventResponse {
+  if (!value || typeof value !== 'object') return false;
+  const data = value as Partial<RawEvaluateEventResponse>;
+  if (data.event_id !== eventId || typeof data.qualified !== 'boolean') return false;
+  if (data.source !== 'live_agent_mesh' && data.source !== 'deterministic_fallback') return false;
+
+  if (data.significance !== null && data.significance !== undefined) {
+    const significance = data.significance as SignificanceOutput;
+    if (significance.event_id !== eventId || typeof significance.importance_score !== 'number' ||
+      significance.importance_score < 1 || significance.importance_score > 10 ||
+      typeof significance.state_delta_summary !== 'string' || significance.state_delta_summary.length > 80) return false;
   }
+  if (data.narrative !== null && data.narrative !== undefined) {
+    const narrative = data.narrative as NarrativeOutput;
+    if (narrative.event_id !== eventId || typeof narrative.headline !== 'string' || narrative.headline.length > 90 ||
+      typeof narrative.why_it_matters !== 'string' || narrative.why_it_matters.length > 140 ||
+      !Array.isArray(narrative.primary_tags) || narrative.primary_tags.length < 1 || narrative.primary_tags.length > 4) return false;
+  }
+  if (data.novice !== null && data.novice !== undefined) {
+    const novice = data.novice as NoviceExplainerOutput;
+    if (novice.event_id !== eventId || typeof novice.term_detected !== 'string' ||
+      typeof novice.plain_english_explanation !== 'string' || novice.plain_english_explanation.length > 120 ||
+      typeof novice.relevance_to_moment !== 'string' || novice.relevance_to_moment.length > 100) return false;
+  }
+  if (data.qualified && (!data.significance || !data.narrative || !data.alert)) return false;
+  if (data.alert !== null && data.alert !== undefined) {
+    const alert = data.alert as EnrichedAlert;
+    if (alert.event_id !== eventId || typeof alert.match_id !== 'string' ||
+      typeof alert.importance !== 'number' || alert.importance < 1 || alert.importance > 10 ||
+      typeof alert.alert !== 'string' || alert.alert.length > 90 ||
+      typeof alert.why !== 'string' || alert.why.length > 140 || !Array.isArray(alert.tags)) return false;
+  }
+  return true;
+}
 
-  // Live AI call with 4-second timeout
+export async function evaluateReplayEvent(
+  event: MatchEvent,
+  precedingEvents: MatchEvent[],
+  options: EvaluateEventOptions,
+): Promise<EvaluateEventResponse | null> {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 4000);
-
-  const payload: ScorerInput = {
-    event_id: event.id,
-    sport: event.sport,
-    type: event.type,
-    headline: event.headline,
-    actors: event.actors,
-    state: event.state as unknown as Record<string, unknown>,
-  };
+  const timeoutId = window.setTimeout(() => controller.abort(), 15_000);
 
   try {
-    const res = await fetch('/api/score', {
+    const response = await fetch(`${API_BASE_URL}/api/v1/evaluate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        event,
+        preceding_events: precedingEvents.filter((item) => item.match_id === event.match_id).slice(-3),
+        threshold: options.threshold,
+        significance_enabled: options.significanceEnabled,
+        narrative_enabled: options.narrativeEnabled,
+        novice_enabled: options.noviceEnabled,
+      }),
       signal: controller.signal,
     });
 
-    clearTimeout(timeoutId);
-
-    if (!res.ok) {
-      throw new Error(`API score returned status ${res.status}`);
+    if (!response.ok) throw new Error(`Event evaluation returned ${response.status}`);
+    const data: unknown = await response.json();
+    if (!isEvaluationResponse(data, event.id)) throw new Error('Invalid event evaluation response');
+    if (data.novice && !event.jargon_terms?.some((term) => term.toLowerCase() === data.novice?.term_detected.toLowerCase())) {
+      throw new Error('Novice output does not match a script-approved jargon term');
     }
 
-    const data: unknown = await res.json();
-    if (validateScorerOutput(data)) {
-      return {
-        alert: data as ScorerOutput,
-        source: 'live',
-      };
-    }
-
-    throw new Error('Invalid JSON structure from live scorer');
-  } catch (err) {
-    console.warn(`[Cutaway Scorer] Live AI call failed or timed out (${err}), using fallback cache:`, event.id);
-    if (cached) return { alert: cached, source: 'cached' };
     return {
-      alert: {
-        event_id: event.id,
-        importance: 6,
-        alert: event.headline.slice(0, 85),
-        why: 'Key event evaluated during live match stream.',
-        tags: [event.type],
-      },
-      source: 'cached',
+      event_id: data.event_id,
+      source: data.source,
+      significance: data.significance ?? null,
+      narrative: data.narrative ?? null,
+      novice: data.novice ?? null,
+      qualified: data.qualified,
+      alert: data.alert ?? null,
+      suppression_reason: data.suppression_reason ?? null,
     };
+  } catch {
+    // The deterministic client pipeline remains available if the AI service is offline.
+    return null;
+  } finally {
+    window.clearTimeout(timeoutId);
   }
 }
